@@ -52,7 +52,7 @@ JoinTest:JoinTest.java
 	$(JAVAC) TestDriver.java JoinOperatorTest.java
 
 jointest: JoinTest
-	$(JAVA) tests.JoinTest
+	$(JAVA) tests.JoinOperatorTest
 
 # test sort
 
