@@ -106,7 +106,7 @@ class JoinsDriver1 implements GlobalConst {
       e.printStackTrace();
     }
 	
-    File R = new File("/home/ouko/Desktop/DBSys_Assignment/NewJoinOperator/JoinAssignement/R.txt"); 
+    File R = new File("../../R.txt"); 
 
       try {
     	  
@@ -196,7 +196,7 @@ class JoinsDriver1 implements GlobalConst {
       e.printStackTrace();
     }
       
-      File S = new File("/home/ouko/Desktop/DBSys_Assignment/NewJoinOperator/JoinAssignement/S.txt"); 
+      File S = new File("../../S.txt"); 
 
       try {
     	  
@@ -212,9 +212,9 @@ class JoinsDriver1 implements GlobalConst {
 	  		while((rec = br.readLine()) != null) {
 	  			List<String> fields = Arrays.asList(rec.split(","));		  		
 	  			t.setIntFld(1, Integer.parseInt(fields.get(0)));
-		  		t.setIntFld(2, Integer.parseInt(fields.get(0)));
-		  		t.setIntFld(3, Integer.parseInt(fields.get(0)));
-		  		t.setIntFld(4, Integer.parseInt(fields.get(0)));
+		  		t.setIntFld(2, Integer.parseInt(fields.get(1)));
+		  		t.setIntFld(3, Integer.parseInt(fields.get(2)));
+		  		t.setIntFld(4, Integer.parseInt(fields.get(3)));
 		  		
 		  		try {
 		  			rid = f.insertRecord(t.returnTupleByteArray());
