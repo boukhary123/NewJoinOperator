@@ -44,11 +44,8 @@ public class QueryParser {
 	// true if the query has a single predicate (condition)
 	boolean singlePred;
 	
-	// condition expression of the first predicate
-	CondExpr[] firstPred;
-	
-	// condition expression of the second predicate
-	CondExpr[] secondPred;
+	// condition expression of the first predicate (elements separated by AND)
+	CondExpr[] Predicate;
 	
 	// heapfile for first relation
 	Heapfile R1_hf;
@@ -390,30 +387,30 @@ public class QueryParser {
 		  				if((line = query_reader.readLine()) != null)
 		  				{
 		  					List<String> predicate = Arrays.asList(line.split(" "));
-		  					firstPred = new CondExpr[3];
-		  					firstPred[0] = new CondExpr();
-		  					firstPred[0].next = null;
+		  					Predicate = new CondExpr[3];
+		  					Predicate[0] = new CondExpr();
+		  					Predicate[0].next = null;
 		  					
 		  					// specify operand types
-		  					firstPred[0].type1 = new AttrType(AttrType.attrSymbol);
-		  					firstPred[0].type2 = new AttrType(AttrType.attrSymbol);
+		  					Predicate[0].type1 = new AttrType(AttrType.attrSymbol);
+		  					Predicate[0].type2 = new AttrType(AttrType.attrSymbol);
 		  					
 			  				String operand = predicate.get(0);
 			  				index_init = operand.indexOf('_');
 			  				operand = operand.substring(index_init+1);
 			  				
 			  				// specify field specifications for the first operand
-			  				firstPred[0].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer),Integer.parseInt(operand));
+			  				Predicate[0].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer),Integer.parseInt(operand));
 		  					
 			  				// specify the operator
-			  				firstPred[0].op    = new AttrOperator(Integer.parseInt(predicate.get(1)));
+			  				Predicate[0].op    = new AttrOperator(Integer.parseInt(predicate.get(1)));
 			  				
 			  				operand = predicate.get(2);
 			  				index_init = operand.indexOf('_');
 			  				operand = operand.substring(index_init+1);
 			  				
 			  				// specify field specifications for the second operand
-			  				firstPred[0].operand2.symbol = new FldSpec (new RelSpec(RelSpec.innerRel),Integer.parseInt(operand));
+			  				Predicate[0].operand2.symbol = new FldSpec (new RelSpec(RelSpec.innerRel),Integer.parseInt(operand));
 			  				
 			  				// in the case of a second predicate
 			  				if((line = query_reader.readLine()) != null)
@@ -424,22 +421,22 @@ public class QueryParser {
 			  					predicate = Arrays.asList(line.split(" "));
 			  					
 			  					// construct the second predicate
-			  					firstPred[1] = new CondExpr();
-			  					firstPred[1].next = null;
-			  					firstPred[1].type1 = new AttrType(AttrType.attrSymbol);
-			  					firstPred[1].type2 = new AttrType(AttrType.attrSymbol);
+			  					Predicate[1] = new CondExpr();
+			  					Predicate[1].next = null;
+			  					Predicate[1].type1 = new AttrType(AttrType.attrSymbol);
+			  					Predicate[1].type2 = new AttrType(AttrType.attrSymbol);
 			  					
 				  				operand = predicate.get(0);
 				  				index_init = operand.indexOf('_');
 				  				operand = operand.substring(index_init+1);
-				  				firstPred[1].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer),Integer.parseInt(operand));
+				  				Predicate[1].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer),Integer.parseInt(operand));
 			  					
-				  				firstPred[1].op    = new AttrOperator(Integer.parseInt(predicate.get(1)));
+				  				Predicate[1].op    = new AttrOperator(Integer.parseInt(predicate.get(1)));
 				  				
 				  				operand = predicate.get(2);
 				  				index_init = operand.indexOf('_');
 				  				operand = operand.substring(index_init+1);
-				  				firstPred[1].operand2.symbol = new FldSpec (new RelSpec(RelSpec.innerRel),Integer.parseInt(operand));
+				  				Predicate[1].operand2.symbol = new FldSpec (new RelSpec(RelSpec.innerRel),Integer.parseInt(operand));
 			  				
 			  				}
 			  				
