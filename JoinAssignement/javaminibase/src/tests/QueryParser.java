@@ -16,9 +16,11 @@ public class QueryParser {
 	
 	List<String> relations;
 	
-	FldSpec []  projection; 
-	AttrType[] projectionTypes;
+	FldSpec []  q_projection; 
+	FldSpec []  R1_projection; 
+	FldSpec []  R2_projection; 
 	
+	AttrType[] projectionTypes;
 	AttrType[] R1types;
 	AttrType[] R2types;
 	
@@ -49,7 +51,7 @@ public class QueryParser {
 		  		{
 		  			List<String> Select = Arrays.asList(line.split(" "));
 		  			
-		  			projection = new FldSpec[2];
+		  			q_projection = new FldSpec[2];
 		  			
 		  			projectionTypes = new AttrType[2];
 		  			
@@ -57,13 +59,13 @@ public class QueryParser {
 	  				int index_init = field.indexOf('_');
 	  				field = field.substring(index_init+1);
 	  				
-	  				projection[0] = new FldSpec(new RelSpec(RelSpec.outer), Integer.parseInt(field));
+	  				q_projection[0] = new FldSpec(new RelSpec(RelSpec.outer), Integer.parseInt(field));
 	  				
 	  				field = Select.get(1);
 	  				index_init = field.indexOf('_');
 	  				field = field.substring(index_init+1);
 	  				
-	  				projection[1] = new FldSpec(new RelSpec(RelSpec.innerRel), Integer.parseInt(field));
+	  				q_projection[1] = new FldSpec(new RelSpec(RelSpec.innerRel), Integer.parseInt(field));
 	  				
 	  				if((line = query_reader.readLine()) != null)
 	  				{
@@ -81,26 +83,34 @@ public class QueryParser {
 		  					if((header = rel_reader.readLine()) != null) {
 					  			List<String> attributes = Arrays.asList(header.split(","));
 					  			R1_no_flds = attributes.size();
+					  			R1_projection = new FldSpec[R1_no_flds];
+					  			
 					  			R1types = new AttrType[R1_no_flds];
 					  			for(int i = 0; i< R1_no_flds;i++) {
 					  				switch(attributes.get(i)) {
 					  				case "attrString":
 					  					R1types[i] = new AttrType(0);
+					  					R1_projection[i] = new FldSpec(new RelSpec(RelSpec.outer),i+1);
 					  					break;
 					  				case "attrInteger":
 					  					R1types[i] = new AttrType(1);
+					  					R1_projection[i] = new FldSpec(new RelSpec(RelSpec.outer),i+1);
 					  					break;
 					  				case "attrReal":
 					  					R1types[i] = new AttrType(2);
+					  					R1_projection[i] = new FldSpec(new RelSpec(RelSpec.outer),i+1);
 					  					break;
 					  				case "attrSymbol":
 					  					R1types[i] = new AttrType(3);
+					  					R1_projection[i] = new FldSpec(new RelSpec(RelSpec.outer),i+1);
 					  					break;
 					  				case "attrNull":
 					  					R1types[i] = new AttrType(4);
+					  					R1_projection[i] = new FldSpec(new RelSpec(RelSpec.outer),i+1);
 					  					break;
 					  				default:
 					  					R1types[i] = new AttrType(4);
+					  					R1_projection[i] = new FldSpec(new RelSpec(RelSpec.outer),i+1);
 					  				}
 					  			}
 			  					
@@ -185,31 +195,44 @@ public class QueryParser {
 			  					if((header = rel_reader.readLine()) != null) {
 						  			List<String> attributes = Arrays.asList(header.split(","));
 						  			R2_no_flds = attributes.size();
+						  			R2_projection = new FldSpec[R2_no_flds];
+
 						  			R2types = new AttrType[R2_no_flds];
 						  			for(int i = 0; i< R2_no_flds;i++) {
 						  				switch(attributes.get(i)) {
 						  				case "attrString":
 						  					R2types[i] = new AttrType(0);
+						  					R2_projection[i] = new FldSpec(new RelSpec(RelSpec.outer),i+1);
 						  					break;
 						  				case "attrInteger":
 						  					R2types[i] = new AttrType(1);
+						  					R2_projection[i] = new FldSpec(new RelSpec(RelSpec.outer),i+1);
+
 						  					break;
 						  				case "attrReal":
 						  					R2types[i] = new AttrType(2);
+						  					R2_projection[i] = new FldSpec(new RelSpec(RelSpec.outer),i+1);
+
 						  					break;
 						  				case "attrSymbol":
 						  					R2types[i] = new AttrType(3);
+						  					R2_projection[i] = new FldSpec(new RelSpec(RelSpec.outer),i+1);
+
 						  					break;
 						  				case "attrNull":
 						  					R2types[i] = new AttrType(4);
+						  					R2_projection[i] = new FldSpec(new RelSpec(RelSpec.outer),i+1);
+
 						  					break;
 						  				default:
 						  					R2types[i] = new AttrType(4);
+						  					R1_projection[i] = new FldSpec(new RelSpec(RelSpec.outer),i+1);
+
 						  				}
 						  			}
 						  			
-				  					projectionTypes[0] = new AttrType(R1types[projection[0].offset].attrType);
-				  					projectionTypes[1] = new AttrType(R2types[projection[1].offset].attrType);
+				  					projectionTypes[0] = new AttrType(R1types[q_projection[0].offset].attrType);
+				  					projectionTypes[1] = new AttrType(R2types[q_projection[1].offset].attrType);
 		
 			  					}
 			  					
@@ -287,8 +310,8 @@ public class QueryParser {
 		  				else {
 		  					R2types = R1types;
 		  					R2_no_flds = R1_no_flds;
-		  					projectionTypes[0] = new AttrType(R1types[projection[0].offset].attrType);
-		  					projectionTypes[1] = new AttrType(R1types[projection[1].offset].attrType);
+		  					projectionTypes[0] = new AttrType(R1types[q_projection[0].offset].attrType);
+		  					projectionTypes[1] = new AttrType(R1types[q_projection[1].offset].attrType);
 		  				}
 		  				
 		  				if((line = query_reader.readLine()) != null)
@@ -304,14 +327,14 @@ public class QueryParser {
 			  				String operand = predicate.get(0);
 			  				index_init = operand.indexOf('_');
 			  				operand = operand.substring(index_init+1);
-			  				firstPred[0].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer),Integer.parseInt(field));
+			  				firstPred[0].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer),Integer.parseInt(operand));
 		  					
 			  				firstPred[0].op    = new AttrOperator(Integer.parseInt(predicate.get(1)));
 			  				
 			  				operand = predicate.get(2);
 			  				index_init = operand.indexOf('_');
 			  				operand = operand.substring(index_init+1);
-			  				firstPred[0].operand1.symbol = new FldSpec (new RelSpec(RelSpec.innerRel),Integer.parseInt(operand));
+			  				firstPred[0].operand2.symbol = new FldSpec (new RelSpec(RelSpec.innerRel),Integer.parseInt(operand));
 			  				
 			  				if((line = query_reader.readLine()) != null && (line = query_reader.readLine()) == "AND")
 			  				{
