@@ -267,31 +267,31 @@ public class QueryParser {
 						  				switch(attributes.get(i)) {
 						  				case "attrString":
 						  					R2types[i] = new AttrType(0);
-						  					R2_projection[i] = new FldSpec(new RelSpec(RelSpec.outer),i+1);
+						  					R2_projection[i] = new FldSpec(new RelSpec(RelSpec.innerRel),i+1);
 						  					break;
 						  				case "attrInteger":
 						  					R2types[i] = new AttrType(1);
-						  					R2_projection[i] = new FldSpec(new RelSpec(RelSpec.outer),i+1);
+						  					R2_projection[i] = new FldSpec(new RelSpec(RelSpec.innerRel),i+1);
 
 						  					break;
 						  				case "attrReal":
 						  					R2types[i] = new AttrType(2);
-						  					R2_projection[i] = new FldSpec(new RelSpec(RelSpec.outer),i+1);
+						  					R2_projection[i] = new FldSpec(new RelSpec(RelSpec.innerRel),i+1);
 
 						  					break;
 						  				case "attrSymbol":
 						  					R2types[i] = new AttrType(3);
-						  					R2_projection[i] = new FldSpec(new RelSpec(RelSpec.outer),i+1);
+						  					R2_projection[i] = new FldSpec(new RelSpec(RelSpec.innerRel),i+1);
 
 						  					break;
 						  				case "attrNull":
 						  					R2types[i] = new AttrType(4);
-						  					R2_projection[i] = new FldSpec(new RelSpec(RelSpec.outer),i+1);
+						  					R2_projection[i] = new FldSpec(new RelSpec(RelSpec.innerRel),i+1);
 
 						  					break;
 						  				default:
 						  					R2types[i] = new AttrType(4);
-						  					R1_projection[i] = new FldSpec(new RelSpec(RelSpec.outer),i+1);
+						  					R1_projection[i] = new FldSpec(new RelSpec(RelSpec.innerRel),i+1);
 
 						  				}
 						  			}
@@ -390,10 +390,9 @@ public class QueryParser {
 		  				if((line = query_reader.readLine()) != null)
 		  				{
 		  					List<String> predicate = Arrays.asList(line.split(" "));
-		  					firstPred = new CondExpr[2];
+		  					firstPred = new CondExpr[3];
 		  					firstPred[0] = new CondExpr();
-		  					firstPred[1] = null;
-		  					firstPred[0].next  = null;
+		  					firstPred[0].next = null;
 		  					
 		  					// specify operand types
 		  					firstPred[0].type1 = new AttrType(AttrType.attrSymbol);
@@ -417,7 +416,7 @@ public class QueryParser {
 			  				firstPred[0].operand2.symbol = new FldSpec (new RelSpec(RelSpec.innerRel),Integer.parseInt(operand));
 			  				
 			  				// in the case of a second predicate
-			  				if((line = query_reader.readLine()) != null && (line = query_reader.readLine()) == "AND")
+			  				if((line = query_reader.readLine()) != null)
 			  				{
 			  					// set singlePred to false
 			  					singlePred = false;
@@ -425,24 +424,22 @@ public class QueryParser {
 			  					predicate = Arrays.asList(line.split(" "));
 			  					
 			  					// construct the second predicate
-			  					secondPred = new CondExpr[2];
-			  					secondPred[0] = new CondExpr();
-			  					secondPred[1] = null;
-			  					secondPred[0].next  = null;
-			  					secondPred[0].type1 = new AttrType(AttrType.attrSymbol);
-			  					secondPred[0].type2 = new AttrType(AttrType.attrSymbol);
+			  					firstPred[1] = new CondExpr();
+			  					firstPred[1].next = null;
+			  					firstPred[1].type1 = new AttrType(AttrType.attrSymbol);
+			  					firstPred[1].type2 = new AttrType(AttrType.attrSymbol);
 			  					
 				  				operand = predicate.get(0);
 				  				index_init = operand.indexOf('_');
 				  				operand = operand.substring(index_init+1);
-				  				secondPred[0].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer),Integer.parseInt(operand));
+				  				firstPred[1].operand1.symbol = new FldSpec (new RelSpec(RelSpec.outer),Integer.parseInt(operand));
 			  					
-				  				secondPred[0].op    = new AttrOperator(Integer.parseInt(predicate.get(1)));
+				  				firstPred[1].op    = new AttrOperator(Integer.parseInt(predicate.get(1)));
 				  				
 				  				operand = predicate.get(2);
 				  				index_init = operand.indexOf('_');
 				  				operand = operand.substring(index_init+1);
-				  				secondPred[0].operand1.symbol = new FldSpec (new RelSpec(RelSpec.innerRel),Integer.parseInt(operand));
+				  				firstPred[1].operand2.symbol = new FldSpec (new RelSpec(RelSpec.innerRel),Integer.parseInt(operand));
 			  				
 			  				}
 			  				
