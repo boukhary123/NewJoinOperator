@@ -47,11 +47,56 @@ public class ParserTest  implements GlobalConst {
 		  
 		  File query_file = new File("../../query_1a.txt");
 		  QueryParser q = new QueryParser(query_file);
+		  
+		  FileScan am = null;
+		  try {
+		      am = new FileScan("R1.in",
+					   q.R1types, null, (short) q.R1_no_flds, q.R1_no_flds,
+					   q.R1_projection,null);
+		    }
+		    
+		    catch (Exception e) {
+		      System.err.println ("*** Error creating scan for Index scan");
+		      System.err.println (""+e);
+		      Runtime.getRuntime().exit(1);
+		    }
+		    
+		    
+		    NestedLoopsJoins nlj = null;
+		    try {
+		      nlj = new NestedLoopsJoins (q.R1types,q.R1_no_flds, null,
+						  q.R2types, q.R2_no_flds, null,
+						  10,
+						  am, "R2.in",
+						  q.firstPred, null, q.q_projection,2);
+		    }
+		    
+		    catch (Exception e) {
+		      System.err.println ("*** Error preparing for nested_loop_join");
+		      System.err.println (""+e);
+		      e.printStackTrace();
+		      Runtime.getRuntime().exit(1);
+		    }
+		    
+		    Tuple t = new Tuple();
+		    t = null;
+		    try {
+		      while ((t = nlj.get_next()) != null) {
+		        t.print(q.projectionTypes);
+		      }
+		    }
+		    catch (Exception e) {
+		      System.err.println (""+e);
+		      e.printStackTrace();
+		      Runtime.getRuntime().exit(1);
+		    }
 	  }
 	  
 	  public static void main(String argv[])
 	  {
 		  ParserTest test = new ParserTest();
+		  
+		  
 
 	  }
 
