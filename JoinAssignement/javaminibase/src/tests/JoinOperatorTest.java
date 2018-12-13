@@ -731,8 +731,8 @@ class JoinsDriver1 implements GlobalConst {
     short [] JJsize = new short[1];
     JJsize[0] = 30;
     FldSpec []  proj1 = {
-       new FldSpec(new RelSpec(RelSpec.innerRel), 1),
        new FldSpec(new RelSpec(RelSpec.outer), 1),
+       new FldSpec(new RelSpec(RelSpec.innerRel), 1),
     }; // S.sname, R.bid
 //
 //    FldSpec [] proj2  = {
