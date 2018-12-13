@@ -62,7 +62,7 @@ class Reserves {
   }
 }
 
-class JoinsDriver implements GlobalConst {
+class JoinsDriver implements GlobalConst  implements GlobalConst {
   
   private boolean OK = true;
   private boolean FAIL = false;

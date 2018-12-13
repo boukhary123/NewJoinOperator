@@ -40,7 +40,7 @@ public class QueryParser {
 		singlePred = true;
 		
 		try {
-		  		
+		    
 				BufferedReader query_reader = new BufferedReader(new FileReader(f)); 
 		  		
 		  		String line;
@@ -138,11 +138,7 @@ public class QueryParser {
 
 					  		      try {
 					  		    	  
-//					  			t.setIntFld(1, ((Sailor)sailors.elementAt(i)).sid);
-//					  			t.setStrFld(2, ((Sailor)sailors.elementAt(i)).sname);
-//					  			t.setIntFld(3, ((Sailor)sailors.elementAt(i)).rating);
-//					  			t.setFloFld(4, (float)((Sailor)sailors.elementAt(i)).age);
-					  					
+				
 					  			  		BufferedReader br = new BufferedReader(new FileReader(rel_file)); 
 					  			  		
 					  			  		String rec;
@@ -178,8 +174,6 @@ public class QueryParser {
 		  				
 		  				if (no_relations > 1)
 		  				{
-		  					projectionTypes[0] = new AttrType(R1types[projection[0].offset].attrType);
-		  					projectionTypes[1] = new AttrType(R2types[projection[1].offset].attrType);
 		  					
 		  					relation = relations.get(1);
 			  				
@@ -213,6 +207,9 @@ public class QueryParser {
 						  					R2types[i] = new AttrType(4);
 						  				}
 						  			}
+						  			
+				  					projectionTypes[0] = new AttrType(R1types[projection[0].offset].attrType);
+				  					projectionTypes[1] = new AttrType(R2types[projection[1].offset].attrType);
 		
 			  					}
 			  					
