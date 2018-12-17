@@ -193,6 +193,8 @@ public class SelfInequalityJoinTwoPredicate  extends Iterator
 		  // initialize L1 array
 		  int i=0;
 		  L1 = new ArrayList<Row>();
+		  L2 = new ArrayList<Row>();
+
 		  hf = new Heapfile(relationName);
 		  inner = hf.openScan();
 	      RID rid = new RID();
@@ -210,7 +212,7 @@ public class SelfInequalityJoinTwoPredicate  extends Iterator
 	    	  // add an element to L2 array
 	    	  field_to_sort=inner_tuple.getIntFld(outFilter[1].operand1.symbol.offset);
 			  current_row = new Row(rid, field_to_sort);
-	    	  L1.add(current_row);
+	    	  L2.add(current_row);
 	    	  
 	    	  i+=1;
 	    	  
