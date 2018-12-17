@@ -20,10 +20,10 @@ public class QueryParser {
 	// projection fields specifications for the query
 	FldSpec []  q_projection; 
 	
-	// projection represeting all the fields specification of first relation (used in FileScan)
+	// projection representing all the fields specification of first relation (used in FileScan)
 	FldSpec []  R1_projection; 
 	
-	// projection represeting all the fields specification of second relation (used in FileScan if needed)
+	// projection representing all the fields specification of second relation (used in FileScan if needed)
 	FldSpec []  R2_projection; 
 	
 	// Projection attribute type (used in print tuples)
@@ -47,17 +47,17 @@ public class QueryParser {
 	// condition expression of the first predicate (elements separated by AND)
 	CondExpr[] Predicate;
 	
-	// heapfile for first relation
+	// heap file for first relation
 	Heapfile R1_hf;
 	
-	// heapfile for second relation
+	// heap file for second relation
 	Heapfile R2_hf;
 	
 
 	
 	public QueryParser(File f)
 	{
-		// intialize as single predicate query
+		// initialize as single predicate query
 		singlePred = true;
 		
 		try {
@@ -108,7 +108,7 @@ public class QueryParser {
 	  					
 	  					// get first relation
 		  				String relation = relations.get(0);
-		  				
+
 		  				// get the relation file containing the attribute types and records
 		  				File rel_file = new File("../../"+relation+".txt");
 		  				
@@ -160,6 +160,7 @@ public class QueryParser {
 					  				}
 					  			}
 			  					
+					  			if(!relation.equals("Q")) {
 					  		    Tuple t = new Tuple();
 					  		    try {
 					  		      t.setHdr((short) R1_no_flds,R1types, null);
@@ -197,7 +198,8 @@ public class QueryParser {
 
 					  			  		String rec;
 					  			  		rec = rel_reader.readLine();
-					  			  		while((rec = rel_reader.readLine()) != null) {
+					  			  		int i = 0;
+					  			  		while((rec = rel_reader.readLine()) != null && i<30000) {
 					  			  			
 					  			  			// read each field for each tuple
 					  			  			List<String> fields = Arrays.asList(rec.split(","));		  		
@@ -209,6 +211,7 @@ public class QueryParser {
 					  				        try {
 					  				        	// insert the tuple into the heap file
 					  				        	rid = R1_hf.insertRecord(t.returnTupleByteArray());
+					  				        	i++;
 					  				              }
 					  				              catch (Exception e) {
 					  				        	System.err.println("*** error in Heapfile.insertRecord() ***");
@@ -222,6 +225,7 @@ public class QueryParser {
 					  			System.err.println("*** Heapfile error in Tuple.setStrFld() ***");
 					  			e.printStackTrace();
 					  		      }
+					  			}
 	
 		  					}
 		  					
@@ -299,6 +303,8 @@ public class QueryParser {
 		
 			  					}
 			  					
+			  					if(!relation.equals("Q"))
+			  					{
 			  					// create a tuple for heap file
 			  					Tuple t = new Tuple();
 					  		    try {
@@ -354,8 +360,9 @@ public class QueryParser {
 					  				  		t.setIntFld(4, Integer.parseInt(fields.get(3)));
 					  				  		
 					  				        try {
-					  				        	// insert the tupe into the heap file
+					  				        	// insert the type into the heap file
 					  				        	rid = R2_hf.insertRecord(t.returnTupleByteArray());
+					  				        	
 					  				              }
 					  				              catch (Exception e) {
 					  				        	System.err.println("*** error in Heapfile.insertRecord() ***");
@@ -369,6 +376,7 @@ public class QueryParser {
 					  			System.err.println("*** Heapfile error in Tuple.setStrFld() ***");
 					  			e.printStackTrace();
 					  		      }
+			  					}
 			  					
 			  				}catch(Exception e) {
 			  					
@@ -453,7 +461,7 @@ public class QueryParser {
 		      }
 	
 	}
-
+	
 }
 
 
