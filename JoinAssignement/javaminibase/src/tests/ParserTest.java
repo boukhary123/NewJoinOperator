@@ -464,16 +464,7 @@ public class ParserTest  implements GlobalConst {
 	  
 	  public static void main(String argv[])
 	  {
-<<<<<<< HEAD
-		  //ParserTest3();
-		  new ParserTest();
-		  
-		  
-		  
-
-=======
 		  ParserTest test = new ParserTest();
->>>>>>> 26d1b8bbbf1c61456afa890c9ae0f7b5425f9db5
 	  }
 
 
