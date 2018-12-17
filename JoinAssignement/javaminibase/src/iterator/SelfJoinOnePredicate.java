@@ -1,5 +1,5 @@
 package iterator;
-   
+import java.util.*;   
 import heap.*;
 import global.*;
 import bufmgr.*;
@@ -29,17 +29,13 @@ public class SelfJoinOnePredicate  extends Iterator
   private   Tuple     Jtuple;           // Joined tuple
   private   FldSpec   perm_mat[];
   private   int        nOutFlds;
-  //private   Heapfile  hf;
-  private   Iterator      inner;
   private Sort sort_fileds_outer;
-  private Sort sort_fileds_inner;
-  private BitSet BitArray; 
-  private Iterator am2;
+  //private BitSet BitArray; 
   private int eqoff;
   private int outer_index;
   private int inner_index;
-  private Tuple L1[];
-  //L2[];
+  private ArrayList<Tuple> L1;
+  private int number_of_rows;
   
   
   /**constructor
@@ -83,11 +79,6 @@ public class SelfJoinOnePredicate  extends Iterator
       System.arraycopy(in2,0,_in2,0,in2.length);
       in1_len = len_in1;
       in2_len = len_in2;
-      
-  
-      
-      
-//      outer = am1;
       t2_str_sizescopy =  t2_str_sizes;
       inner_tuple = new Tuple();
       Jtuple = new Tuple();
@@ -95,7 +86,6 @@ public class SelfJoinOnePredicate  extends Iterator
       RightFilter  = rightFilter;
       
       n_buf_pgs    = amt_of_mem;
-//      inner = null;
       done  = false;
       get_from_outer = true;
       
@@ -114,40 +104,11 @@ public class SelfJoinOnePredicate  extends Iterator
       }
       
       
-      
-//      try {
-//	  hf = new Heapfile(relationName);
-//	  
-//      }
-//      catch(Exception e) {
-//	throw new NestedLoopException(e, "Create new heapfile failed.");
-//      }
-      
-      // initialize outer and innder indexes
+      // initialize outer and inner indexes
       outer_index = 0;
       inner_index = 0;
       
-      // create an iterator file scan on the inner attribute
-      FldSpec [] Sprojection=new FldSpec[len_in2];
-     
-      for (int i=0;i<len_in2;i++) {
-    	  Sprojection[i] = new FldSpec(new RelSpec(RelSpec.outer), i);
-      }
-      
-      // create file scan iterator on inner relation
-      try {
-    	  am2  = new FileScan(relationName, _in2 ,t2_str_sizes,
-    			  (short)len_in2, (short)len_in2 ,
-    			  Sprojection, null);
-      }
-      
-      
-      catch (Exception e) {
-          System.err.println (""+e);
-        }      
-      
-      
-      
+           
       // variable to specify sort oder of the file 
       TupleOrder sortoder = null;
       
@@ -159,8 +120,7 @@ public class SelfJoinOnePredicate  extends Iterator
     	  // sort array in ascending order
     	  sortoder = new TupleOrder(TupleOrder.Ascending);
     	   	  
-    	  
-    	  
+    	 	  
     	  
       }
       
@@ -176,29 +136,19 @@ public class SelfJoinOnePredicate  extends Iterator
 	  try {
 		  sort_fileds_outer = new Sort (_in1,(short)len_in1, t1_str_sizes,
 			  (iterator.Iterator) am1, outFilter[0].operand1.symbol.offset,
-			  sortoder, t1_str_sizes[outFilter[0].operand1.symbol.offset], 10);
+			  sortoder, 30, 10);
+		  
 		  
 		  outer = sort_fileds_outer;
-		  
-		  sort_fileds_inner = new Sort (_in2,(short)len_in2, t2_str_sizes,
-				  (iterator.Iterator) am2, outFilter[0].operand1.symbol.offset,
-				  sortoder, t2_str_sizes[outFilter[0].operand1.symbol.offset], 10);
-		  inner = sort_fileds_inner;
-		  
-		  // initialize L1 and L2 array
-		  L1 = new Tuple[len_in1];
-		  L2 = new Tuple[len_in2];
+		  // initialize L1 array
 		 int i=0;
+		 L1 = new ArrayList<Tuple>();
 		 while((outer_tuple=outer.get_next()) != null) {
-			  L1[i]=outer_tuple;
+			 L1.add(new Tuple(outer_tuple));
+			  i++;
 		  }
-		 
-//		  while((inner_tuple=inner.get_next()) != null) {
-//			  L2[i]=inner_tuple;
-//		  }
-		  
-		  
-		 
+		 // get the number of rows
+		 number_of_rows = i;		 
 	  }
 	  
 	  catch (Exception e) {
@@ -206,12 +156,7 @@ public class SelfJoinOnePredicate  extends Iterator
 		  System.err.println (""+e);
 		  Runtime.getRuntime().exit(1);
 		  }        
-      
-      // initialize Bit array to zero
-	  BitArray = new BitSet(len_in1);
-	  
-	  // not sure about it initialize join result 
-	  
+      	  
 	  // check if or equal or not
 	  if(outFilter[0].op.attrOperator  == AttrOperator.aopGE ||
 			  outFilter[0].op.attrOperator  == AttrOperator.aopLE) {
@@ -223,9 +168,7 @@ public class SelfJoinOnePredicate  extends Iterator
 		  
 		  eqoff=1;
 	  }
-         
-      
-      
+            
     }
   
   /**  
@@ -260,103 +203,23 @@ public class SelfJoinOnePredicate  extends Iterator
 	   UnknownKeyTypeException,
 	   Exception
     {
-      // This is a DUMBEST form of a join, not making use of any key information...
-      
-      
-//      if (done)
-//	return null;
     
-          
-//      do
-//	{
-//	  // If get_from_outer is true, Get a tuple from the outer, delete
-//	  // an existing scan on the file, and reopen a new scan on the file.
-//	  // If a get_next on the outer returns DONE?, then the nested loops
-//	  //join is done too.
-//	  
-//	  if (get_from_outer == true)
-//	    {
-//	      get_from_outer = false;
-//	      if (inner != null)     // If this not the first time,
-//		{
-//		  // close scan
-//		  inner = null;
-//		}
-//	    
-//	      try {
-//		inner = hf.openScan();
-//	      }
-//	      catch(Exception e){
-//		throw new NestedLoopException(e, "openScan failed");
-//	      }
-//	      
-//	      if ((outer_tuple=outer.get_next()) == null)
-//		{
-//		  done = true;
-//		  if (inner != null) 
-//		    {
-//                      
-//		      inner = null;
-//		    }
-//		  
-//		  return null;
-//		}   
-//	    }  // ENDS: if (get_from_outer == TRUE)
-//	 
-//	  
-//	  // The next step is to get a tuple from the inner,
-//	  // while the inner is not completely scanned && there
-//	  // is no match (with pred),get a tuple from the inner.
-//	  BitArray.set(i);
-//
-//	 
-//	      RID rid = new RID();
-//	      while ((inner_tuple = inner.get_next()) != null)
-//		{
-//		  inner_tuple.setHdr((short)in2_len, _in2,t2_str_sizescopy);
-//		  if (PredEval.Eval(RightFilter, inner_tuple, null, _in2, null) == true)
-//		    {
-//		      if (PredEval.Eval(OutputFilter, outer_tuple, inner_tuple, _in1, _in2) == true)
-//			{
-//			  // Apply a projection on the outer and inner tuples.
-//			  Projection.Join(outer_tuple, _in1, 
-//					  inner_tuple, _in2, 
-//					  Jtuple, perm_mat, nOutFlds);
-//			  return Jtuple;
-//			}
-//		    }
-//		}
-//	      
-//	      // There has been no match. (otherwise, we would have 
-//	      //returned from t//he while loop. Hence, inner is 
-//	      //exhausted, => set get_from_outer = TRUE, go to top of loop
-//	      
-//	      get_from_outer = true; // Loop back to top and get next outer tuple.	      
-//	} while (true);
-//      
-//      if (done)
-//	return null;
-    
-      while(outer_index<in1_len) {
-    	  
-    	  
+      while(outer_index<number_of_rows) {
     	  
     	  if(get_from_outer) {
     		  // first parse of this outer index 
     		  // so we need to set inner index
-    		  BitArray.set(outer_index);
-    		  inner_index = outer_index+eqoff;
+    		  inner_index = 0;
     		  get_from_outer = false;
     	  }
-    	  while(inner_index<in2_len) {
-    		  if(BitArray.get(inner_index)) {
-    			  outer_tuple=L1[outer_index];
-    			  inner_tuple=L1[inner_index];
-    			  inner_tuple.setHdr((short)in2_len, _in2,t2_str_sizescopy);
-    			  if (PredEval.Eval(RightFilter, inner_tuple, null, _in2, null) == true)
-    			    {
-    			      if (PredEval.Eval(OutputFilter, outer_tuple, inner_tuple, _in1, _in2) == true)
-    				{
+    	  while(inner_index<outer_index-eqoff) {
+    		  outer_tuple=L1.get(outer_index);
+    		  inner_tuple=L1.get(inner_index);
+    		  inner_tuple.setHdr((short)in2_len, _in2,t2_str_sizescopy);
+    		  if (PredEval.Eval(RightFilter, inner_tuple, null, _in2, null) == true)
+    		  {
+    			  if (PredEval.Eval(OutputFilter, outer_tuple, inner_tuple, _in1, _in2) == true)
+    			  {
     				  // Apply a projection on the outer and inner tuples.
     				  Projection.Join(outer_tuple, _in1, 
     						  inner_tuple, _in2, 
@@ -364,22 +227,14 @@ public class SelfJoinOnePredicate  extends Iterator
     				  inner_index++;
     				  return Jtuple;
     				}
-    			    }
-    			  
-    			  
-    		  
-    	  }
-    		  inner_index++;
-    		
-    	  
-      }
+    			  }
+    		  }
+    	  inner_index++;
     	  get_from_outer = true;
     	  outer_index++;
-      
-      
-    } 
+    	  } 
       return null;
-    }
+      }
  
   /**
    * implement the abstract method close() from super class Iterator
