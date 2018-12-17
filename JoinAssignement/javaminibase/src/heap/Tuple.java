@@ -520,6 +520,75 @@ public void setHdr (short numFlds,  AttrType types[], short strSizes[])
    System.out.println("]");
 
  }
+ 
+ /**
+  * return a particular filed of the tuple
+  * @param type  the types in the tuple
+  * @Exception IOException I/O exception
+  */
+ public int extract_filed(AttrType type[],int field_number)
+    throws IOException 
+ {
+  int val;
+
+
+//  System.out.print("[");
+//  for (i=0; i< fldCnt-1; i++)
+//   {
+//    switch(type[field_number].attrType) {
+
+//   case AttrType.attrInteger:
+     val = Convert.getIntValue(fldOffset[field_number], data);
+     //System.out.print(val);
+     return val;
+//     break;
+//
+//   case AttrType.attrReal:
+//     fval = Convert.getFloValue(fldOffset[i], data);
+////     System.out.print(fval);
+//     return fval;
+////     break;
+//
+//   case AttrType.attrString:
+//     sval = Convert.getStrValue(fldOffset[i], data,fldOffset[i+1] - fldOffset[i]);
+////     System.out.print(sval);
+//     return sval;
+////     break;
+//  
+//   case AttrType.attrNull:
+//   case AttrType.attrSymbol:
+//     return null;
+   }
+//   System.out.print(", ");
+
+// 
+// switch(type[fldCnt-1].attrType) {
+//
+//   case AttrType.attrInteger:
+//     val = Convert.getIntValue(fldOffset[i], data);
+//     System.out.print(val);
+//     break;
+//
+//   case AttrType.attrReal:
+//     fval = Convert.getFloValue(fldOffset[i], data);
+//     System.out.print(fval);
+//     break;
+//
+//   case AttrType.attrString:
+//     sval = Convert.getStrValue(fldOffset[i], data,fldOffset[i+1] - fldOffset[i]);
+//     System.out.print(sval);
+//     break;
+//
+//   case AttrType.attrNull:
+//   case AttrType.attrSymbol:
+//     break;
+//   }
+//   System.out.println("]");
+
+ 
+ 
+ 
+ 
 
   /**
    * private method

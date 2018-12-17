@@ -35,3 +35,10 @@
 /pnodeSplayNode.class
 /pnodeSplayPQ.class
 /SelfJoinOnePredicate.class
+/SelfInequalityJoinTwoPredicate.class
+/Row$SelfInequalityJoinTwoPredicate.class
+/Row$SortAsceding.class
+/Row$SortDesceding.class
+/Row.class
+/SortAsceding.class
+/SortDesceding.class
