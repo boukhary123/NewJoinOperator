@@ -46,6 +46,7 @@ public class ParserTest  implements GlobalConst {
 
 		  
 		  File query_file = new File("../../query_2b.txt");
+
 		  QueryParser q = new QueryParser(query_file);
 		  
 		  FileScan am = null;
@@ -68,7 +69,7 @@ public class ParserTest  implements GlobalConst {
 						  q.R2types, q.R2_no_flds, null,
 						  10,
 						  am, (q.relations.size()>1)? "R2.in" : "R1.in",
-						  q.firstPred, null, q.q_projection,2);
+						  q.Predicate, null, q.q_projection ,2);
 		    }
 		    
 		    catch (Exception e) {
