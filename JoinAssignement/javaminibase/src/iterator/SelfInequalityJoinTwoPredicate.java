@@ -23,7 +23,8 @@ class Row
 	// Constructor 
 	public Row(RID rid, int field_to_sort) 
 	{ 
-		this.rid = new RID(); 
+		//this.rid = new RID(rid.pageNo,rid.slotNo); 
+		this.rid = new RID();
 		this.rid.copyRid(rid);
 		this.field_to_sort=field_to_sort;
 
@@ -84,7 +85,9 @@ public class SelfInequalityJoinTwoPredicate  extends Iterator
   private int number_of_rows;
   private   Heapfile  hf;
   private   Scan      inner;
-  private HashMap<RID, Integer> permutation_array; 
+  //private HashMap<RID, Integer> permutation_array; 
+  private int permutation_array[];
+  int pos;
 
 
   
@@ -204,19 +207,39 @@ public class SelfInequalityJoinTwoPredicate  extends Iterator
 	      // initialize L1 and L2 array
 	      while ((inner_tuple = inner.getNext(rid)) != null) {
 			  inner_tuple.setHdr((short)in1_len, _in1,t1_str_sizes);
+			  System.out.print(rid.pageNo.pid);
+			  System.out.print(" : ");
+			  System.out.print(rid.slotNo);
+			  System.out.print("\n");
+
 			  // add an element to L1 array
 			  field_to_sort=inner_tuple.getIntFld(outFilter[0].operand1.symbol.offset);
-			  current_row = new Row(rid, field_to_sort);
-	    	  L1.add(current_row);
+			  //current_row = new Row(rid, field_to_sort);
+	    	  L1.add(new Row(rid, field_to_sort));
 			  
 	    	  // add an element to L2 array
 	    	  field_to_sort=inner_tuple.getIntFld(outFilter[1].operand1.symbol.offset);
-			  current_row = new Row(rid, field_to_sort);
-	    	  L2.add(current_row);
+			  //current_row = new Row(rid, field_to_sort);
+	    	  L2.add(new Row(rid, field_to_sort));
 	    	  
 	    	  i+=1;
 	    	  
 	      }
+	      
+	      number_of_rows = i;	
+
+	      for(i=0;i<number_of_rows;i++) {
+//			  System.out.println(L1.get(i).field_to_sort);
+			  System.out.print(L1.get(i).rid.pageNo.pid);
+			  System.out.print(" : ");
+			  System.out.print(L1.get(i).rid.slotNo);
+			  System.out.print("\n");
+
+	      }
+	      // reopen the heap file
+//	      inner.closescan();
+//	      inner = hf.openScan();
+	      //inner.
 	      
 	      
 	      // get the number of rows
@@ -238,11 +261,18 @@ public class SelfInequalityJoinTwoPredicate  extends Iterator
 	      BitArray = new BitSet(number_of_rows);
 	      
 	      // initialize permutation array
-	      permutation_array = new HashMap<RID,Integer>();
+	      //permutation_array = new HashMap<RID,Integer>();
+	      permutation_array = new int[number_of_rows]; 
 	      
 	      
 	      for (i=0; i<number_of_rows; i++)
-	    	  permutation_array.put(L1.get(i).rid,i);
+	    	  for (int j=0;j<number_of_rows;j++) {
+	    		  if (L2.get(i).rid.equals(L1.get(j).rid)){
+	    			  permutation_array[i]=j;
+	    			  break;
+	    		  }
+	    	  }
+	    	  //permutation_array.put(L1.get(i).rid,i);
 
 	  }
 	  
@@ -304,13 +334,37 @@ public class SelfInequalityJoinTwoPredicate  extends Iterator
     	  if(get_from_outer) {
     		  // first parse of this outer index 
     		  // so we need to set inner index
-    		  inner_index = 0;
+    		  //System.out.println(L2.get(outer_index).rid);
+    		  //pos = permutation_array.get(L2.get(outer_index).rid);
+    		  pos = permutation_array[outer_index];
+    		  BitArray.set(pos);
+    		  inner_index = pos+eqoff;
     		  get_from_outer = false;
     	  }
-    	  while(inner_index<outer_index-eqoff) {
-    		  outer_tuple=L1.get(outer_index);
-    		  inner_tuple=L1.get(inner_index);
+    	  while(inner_index<number_of_rows) {
+    		  if(BitArray.get(inner_index)) {
+    		      inner.closescan();
+    		      inner = hf.openScan();
+    			  if(inner.position(L1.get(inner_index).rid)) {
+    				  RID rid = new RID();
+    				  outer_tuple=inner.getNext(rid);
+    			  }
+    			  
+    		      inner.closescan();
+    		      inner = hf.openScan();
+    			  
+    			  if (inner.position(L1.get(pos).rid)) {
+    				  RID rid = new RID();
+    				  inner_tuple=inner.getNext(rid);
+    			  }
+    			  
+//    			  else {
+//    				  inner_index++;
+//    				  continue;
+//    			  }
+    		
     		  inner_tuple.setHdr((short)in2_len, _in2,t2_str_sizescopy);
+    		  outer_tuple.setHdr((short)in2_len, _in2,t2_str_sizescopy);
     		  if (PredEval.Eval(RightFilter, inner_tuple, null, _in2, null) == true)
     		  {
     			  if (PredEval.Eval(OutputFilter, outer_tuple, inner_tuple, _in1, _in2) == true)
@@ -324,7 +378,9 @@ public class SelfInequalityJoinTwoPredicate  extends Iterator
     				}
     			  }
     		  }
-    	  inner_index++;
+    		  inner_index++;
+    	  }
+    	  //inner_index++;
     	  get_from_outer = true;
     	  outer_index++;
     	  } 

@@ -229,7 +229,7 @@ public class SelfJoinOnePredicate  extends Iterator
     				}
     			  }
     		  }
-    	  inner_index++;
+    	  //inner_index++;
     	  get_from_outer = true;
     	  outer_index++;
     	  } 
