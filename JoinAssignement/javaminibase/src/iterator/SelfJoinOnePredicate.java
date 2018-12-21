@@ -30,7 +30,6 @@ public class SelfJoinOnePredicate  extends Iterator
   private   FldSpec   perm_mat[];
   private   int        nOutFlds;
   private Sort sort_fileds_outer;
-  //private BitSet BitArray; 
   private int eqoff;
   private int outer_index;
   private int inner_index;
@@ -95,12 +94,14 @@ public class SelfJoinOnePredicate  extends Iterator
       perm_mat = proj_list;
       nOutFlds = n_out_flds;
       try {
-	t_size = TupleUtils.setup_op_tuple(Jtuple, Jtypes,
+    	  t_size = TupleUtils.setup_op_tuple(Jtuple, Jtypes,
 					   in1, len_in1, in2, len_in2,
 					   t1_str_sizes, t2_str_sizes,
 					   proj_list, nOutFlds);
-      }catch (TupleUtilsException e){
-	throw new NestedLoopException(e,"TupleUtilsException is caught by NestedLoopsJoins.java");
+      }
+      catch (TupleUtilsException e){
+    	  throw new NestedLoopException(
+    			  e,"TupleUtilsException is caught by SelfJoinOnrPredicate.java");
       }
       
       
@@ -118,10 +119,7 @@ public class SelfJoinOnePredicate  extends Iterator
     	  
     	  
     	  // sort array in ascending order
-    	  sortoder = new TupleOrder(TupleOrder.Ascending);
-    	   	  
-    	 	  
-    	  
+    	  sortoder = new TupleOrder(TupleOrder.Ascending);  	  
       }
       
       else if (outFilter[0].op.attrOperator  == AttrOperator.aopLT ||
@@ -138,15 +136,21 @@ public class SelfJoinOnePredicate  extends Iterator
 			  (iterator.Iterator) am1, outFilter[0].operand1.symbol.offset,
 			  sortoder, 30, 10);
 		  
-		  
 		  outer = sort_fileds_outer;
+	      FldSpec   perm[];
+	      perm = new FldSpec[1];
+	      perm[0]=perm_mat[0];
+		  
 		  // initialize L1 array
 		 int i=0;
 		 L1 = new ArrayList<Tuple>();
 		 while((outer_tuple=outer.get_next()) != null) {
+			 outer_tuple.setHdr((short)in1_len, _in1,t1_str_sizes);
+			 Projection.Project(outer_tuple, _in1, Jtuple, perm,1);
 			 L1.add(new Tuple(outer_tuple));
 			  i++;
 		  }
+		 
 		 // get the number of rows
 		 number_of_rows = i;		 
 	  }
@@ -157,18 +161,16 @@ public class SelfJoinOnePredicate  extends Iterator
 		  Runtime.getRuntime().exit(1);
 		  }        
       	  
-	  // check if or equal or not
+	  // eqoff variable is used to detect if we have or equal operator
 	  if(outFilter[0].op.attrOperator  == AttrOperator.aopGE ||
 			  outFilter[0].op.attrOperator  == AttrOperator.aopLE) {
-		  
-		  eqoff=0;  
+		  eqoff=1;  
 	  }
 	  
 	  else {
 		  
-		  eqoff=1;
-	  }
-            
+		  eqoff=0;
+	  }     
     }
   
   /**  
@@ -208,32 +210,31 @@ public class SelfJoinOnePredicate  extends Iterator
     	  
     	  if(get_from_outer) {
     		  // first parse of this outer index 
-    		  // so we need to set inner index
+    		  // so we need to set inner index to zero
     		  inner_index = 0;
     		  get_from_outer = false;
     	  }
-    	  while(inner_index<outer_index-eqoff) {
+  
+    	  while(inner_index<outer_index+eqoff) {
+    		  
+    		  // get outer and inner tuple
     		  outer_tuple=L1.get(outer_index);
     		  inner_tuple=L1.get(inner_index);
-    		  inner_tuple.setHdr((short)in2_len, _in2,t2_str_sizescopy);
-    		  if (PredEval.Eval(RightFilter, inner_tuple, null, _in2, null) == true)
-    		  {
-    			  if (PredEval.Eval(OutputFilter, outer_tuple, inner_tuple, _in1, _in2) == true)
-    			  {
-    				  // Apply a projection on the outer and inner tuples.
-    				  Projection.Join(outer_tuple, _in1, 
-    						  inner_tuple, _in2, 
-    						  Jtuple, perm_mat, nOutFlds);
-    				  inner_index++;
-    				  return Jtuple;
-    				}
-    			  }
+    		      		  
+    		  // join inner and outer tuples
+    		  Projection.Join(outer_tuple, _in1, inner_tuple, _in2, 
+    				  Jtuple, perm_mat, nOutFlds);
+    		  inner_index++;
+    		  return Jtuple;
+    		  
     		  }
-    	  //inner_index++;
+    	  
     	  get_from_outer = true;
     	  outer_index++;
     	  } 
+      
       return null;
+      
       }
  
   /**

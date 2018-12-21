@@ -138,7 +138,7 @@ public class Scan implements GlobalConst{
     PageId pgid = new PageId();
     pgid.pid = rid.pageNo.pid;
  
-    if (datapageId.pid==pgid.pid) {
+    if (!datapageId.equals(pgid)) {
 
       // reset everything and start over from the beginning
       reset();
@@ -148,8 +148,7 @@ public class Scan implements GlobalConst{
       if (bst != true)
 	return bst;
       
-      //while (!datapageId.equals(pgid)) {
-      while (datapageId.pid!=pgid.pid) {
+      while (!datapageId.equals(pgid)) {
 	bst = nextDataPage();
 	if (bst != true)
 	  return bst;
@@ -174,13 +173,8 @@ public class Scan implements GlobalConst{
     
     bst = peekNext(nxtrid);
     
-    while ((bst == true) && (! nxtrid.equals(rid))) {
-    	bst = mvNext(nxtrid);
-    	if (bst == true)
-    		bst = peekNext(nxtrid);  	
-    }
-    
-    
+    while ((bst == true) && (nxtrid != rid))
+      bst = mvNext(nxtrid);
     
     return bst;
   }

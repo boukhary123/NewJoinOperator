@@ -12,7 +12,7 @@ import bufmgr.*;
 import btree.*; 
 import catalog.*;
 import tests.*;
-
+import java.io.*; 
 
 public class ParserTest  implements GlobalConst {
 	
@@ -45,7 +45,7 @@ public class ParserTest  implements GlobalConst {
 		    SystemDefs sysdef = new SystemDefs( dbpath, 1000, NUMBUF, "Clock" );
 
 		  
-		  File query_file = new File("../../query_2b.txt");
+		  File query_file = new File("../../query_2a.txt");
 		  QueryParser q = new QueryParser(query_file);
 		  if (q.R1_hf !=null || q.R2_hf != null) {
 			  
@@ -658,12 +658,12 @@ public class ParserTest  implements GlobalConst {
 			      Runtime.getRuntime().exit(1);
 			    }
 			    
-			    Tuple t = new Tuple();
-			    t = null;
-			    try {
-			      while ((t = nlj.get_next()) != null) {
-			        t.print(q.projectionTypes);
-			      }
+				    Tuple t = new Tuple();
+				    t = null;
+				    try {
+				      while ((t = nlj.get_next()) != null) {
+				        t.print(q.projectionTypes);
+				      }
 			    }
 			    catch (Exception e) {
 			      System.err.println (""+e);
@@ -888,9 +888,16 @@ public class ParserTest  implements GlobalConst {
 	  
 	  public static void main(String argv[])
 	  {
-		  //ParserTest test = new ParserTest();
-		  ParserTest3();
+		  long start = System.currentTimeMillis();
+		  ParserTest test = new ParserTest();
+	      long end = System.currentTimeMillis(); 
+		  
+	      System.out.println("NLJ takes " + 
+                  (end - start) + "ms"); 
+	      start = System.currentTimeMillis();
+		  ParserTest2();
+		  end = System.currentTimeMillis(); 
+		  System.out.println("IESelfJoin takes " + 
+                  (end - start) + "ms");	  
 	  }
-
-
 }

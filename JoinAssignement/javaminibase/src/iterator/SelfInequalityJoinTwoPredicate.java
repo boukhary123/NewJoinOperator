@@ -10,24 +10,27 @@ import java.util.BitSet;
 import java.io.*;
 
 
+/** 
+*
+*  This file contains an implementation of the self join loop with two predicates.
+*/
 
-
-// A class to represent an index and field to be sorted 
-// the filed is assumed integer and this later can enhanced
-
+// this class is used to represent in a tuple to be sorted in an array
 class Row 
 { 
-	public RID rid; 
-	public int field_to_sort; 
+	public RID rid; // the record id number
+	public int field_to_sort; // the field to be sorted
 
 	// Constructor 
 	public Row(RID rid, int field_to_sort) 
 	{ 
-		//this.rid = new RID(rid.pageNo,rid.slotNo); 
 		this.rid = new RID();
 		this.rid.copyRid(rid);
 		this.field_to_sort=field_to_sort;
+	}
 
+	public boolean equals(Row right) {
+		return this.rid.equals(right.rid);
 	} 
 }	
 
@@ -55,11 +58,6 @@ class SortDesceding implements Comparator<Row>
 } 
 
 
-/** 
- *
- *  This file contains an implementation of the self join loop with one predicate.
- */
-
 public class SelfInequalityJoinTwoPredicate  extends Iterator 
 {
   private AttrType      _in1[],  _in2[];
@@ -69,23 +67,20 @@ public class SelfInequalityJoinTwoPredicate  extends Iterator
   private   CondExpr OutputFilter[];
   private   CondExpr RightFilter[];
   private   int        n_buf_pgs;        // # of buffer pages available.
-  private   boolean        done,         // Is the join complete
-    get_from_outer;                 // if TRUE, a tuple is got from outer
+  private   boolean   get_from_outer;    // if TRUE, a tuple is got from outer
   private   Tuple     outer_tuple, inner_tuple;
   private   Tuple     Jtuple;           // Joined tuple
   private   FldSpec   perm_mat[];
   private   int        nOutFlds;
-  private Sort sort_fileds_outer;
   private BitSet BitArray; 
   private int eqoff;
   private int outer_index;
   private int inner_index;
-  private ArrayList<Row> L1;
+  private ArrayList<RowWithTuple> L1;
   private ArrayList<Row> L2;
   private int number_of_rows;
   private   Heapfile  hf;
   private   Scan      inner;
-  //private HashMap<RID, Integer> permutation_array; 
   private int permutation_array[];
   int pos;
 
@@ -101,7 +96,7 @@ public class SelfInequalityJoinTwoPredicate  extends Iterator
    *@param  t2_str_sizes shows the length of the string fields.
    *@param amt_of_mem  IN PAGES
    *@param am1  access method for left i/p to join
-   *@param relationName  access heapfile for right i/p to join
+   *@param relationName  access heap file for right i/p to join
    *@param outFilter   select expressions
    *@param rightFilter reference to filter applied on right i/p
    *@param proj_list shows what input fields go where in the output tuple
@@ -124,8 +119,6 @@ public class SelfInequalityJoinTwoPredicate  extends Iterator
 			   int        n_out_flds
 			   ) throws IOException,NestedLoopException
     {
-	  
-
 	  _in1 = new AttrType[in1.length];
       _in2 = new AttrType[in2.length];
       System.arraycopy(in1,0,_in1,0,in1.length);
@@ -139,7 +132,6 @@ public class SelfInequalityJoinTwoPredicate  extends Iterator
       RightFilter  = rightFilter;
       
       n_buf_pgs    = amt_of_mem;
-      done  = false;
       get_from_outer = true;
       
       AttrType[] Jtypes = new AttrType[n_out_flds];
@@ -148,131 +140,121 @@ public class SelfInequalityJoinTwoPredicate  extends Iterator
       perm_mat = proj_list;
       nOutFlds = n_out_flds;
       
-      // variable to specify sort oder of the file 
-      boolean Ascending = false;
+      // variable to specify sort oder of the array 
+      boolean Ascending_op1 = false;
+      boolean Descending_op2 = false;
       
       try {
-	t_size = TupleUtils.setup_op_tuple(Jtuple, Jtypes,
+    	  t_size = TupleUtils.setup_op_tuple(Jtuple, Jtypes,
 					   in1, len_in1, in2, len_in2,
 					   t1_str_sizes, t2_str_sizes,
 					   proj_list, nOutFlds);
-      }catch (TupleUtilsException e){
-	throw new NestedLoopException(e,"TupleUtilsException is caught by NestedLoopsJoins.java");
-      }
+    	  
+    	  }catch (TupleUtilsException e) {
+    		  throw new NestedLoopException(
+    				  e,"TupleUtilsException is caught by SelfInequalityjoin.java");
+    		  }
       
       
       // initialize outer and inner indexes
       outer_index = 0;
       inner_index = 0;
      
-      // check how we should sort the L1 array (the heap file)
+      // check how we should sort the L1 array and L2 array
       if (outFilter[0].op.attrOperator  == AttrOperator.aopGT ||
     		  outFilter[0].op.attrOperator  == AttrOperator.aopGE) {
     	  
-    	  
-    	  // sort array in ascending order
-    	  Ascending = true;
-    	   	  
-    	 	  
-    	  
+    	  Ascending_op1 = true;
+    	   	 	  
       }
       
       else if (outFilter[0].op.attrOperator  == AttrOperator.aopLT ||
     		  outFilter[0].op.attrOperator  == AttrOperator.aopLE){
     	  
-    	  // sort array in descending order
-    	  Ascending = false;
-    	    	  
+    	  Ascending_op1 = false;
       }
       
-      
-
-      
+      if(outFilter[1].op.attrOperator  == AttrOperator.aopGT ||
+    		  outFilter[1].op.attrOperator  == AttrOperator.aopGE) {
+    	  
+    	  Descending_op2 = true;  
+      }
 	  
-	  try {
-
+      
+      else if(outFilter[1].op.attrOperator  == AttrOperator.aopLT ||
+    		  outFilter[1].op.attrOperator  == AttrOperator.aopLE) {
+    	  
+    	  Descending_op2 = false;  
+      }
+      
+	  try {	  
 		  
-		  
-		  // initialize L1 array
 		  int i=0;
-		  L1 = new ArrayList<Row>();
+		  L1 = new ArrayList<RowWithTuple>();
 		  L2 = new ArrayList<Row>();
 
 		  hf = new Heapfile(relationName);
 		  inner = hf.openScan();
 	      RID rid = new RID();
 	      int field_to_sort;
-	      Row current_row; 
-	      
+	      FldSpec   perm[];
+	      perm = new FldSpec[1];
+	      perm[0]=perm_mat[0];
+ 
 	      // initialize L1 and L2 array
 	      while ((inner_tuple = inner.getNext(rid)) != null) {
 			  inner_tuple.setHdr((short)in1_len, _in1,t1_str_sizes);
-			  System.out.print(rid.pageNo.pid);
-			  System.out.print(" : ");
-			  System.out.print(rid.slotNo);
-			  System.out.print("\n");
-
+			  
 			  // add an element to L1 array
 			  field_to_sort=inner_tuple.getIntFld(outFilter[0].operand1.symbol.offset);
-			  //current_row = new Row(rid, field_to_sort);
-	    	  L1.add(new Row(rid, field_to_sort));
+			  Projection.Project(inner_tuple, _in1, Jtuple, perm,1);
+	    	  L1.add(new RowWithTuple(rid, field_to_sort,Jtuple));
 			  
 	    	  // add an element to L2 array
 	    	  field_to_sort=inner_tuple.getIntFld(outFilter[1].operand1.symbol.offset);
-			  //current_row = new Row(rid, field_to_sort);
+			  Projection.Project(inner_tuple, _in1, Jtuple, perm,1);
 	    	  L2.add(new Row(rid, field_to_sort));
 	    	  
+	    	  // keep track of the number of rows
 	    	  i+=1;
 	    	  
 	      }
 	      
-	      number_of_rows = i;	
-
-	      for(i=0;i<number_of_rows;i++) {
-//			  System.out.println(L1.get(i).field_to_sort);
-			  System.out.print(L1.get(i).rid.pageNo.pid);
-			  System.out.print(" : ");
-			  System.out.print(L1.get(i).rid.slotNo);
-			  System.out.print("\n");
-
-	      }
-	      // reopen the heap file
-//	      inner.closescan();
-//	      inner = hf.openScan();
-	      //inner.
+	 
 	      
-	      
-	      // get the number of rows
 	      number_of_rows = i;	
 	      
-	      if (Ascending) {
+
+	      if (Ascending_op1) {
 	    	  Collections.sort(L1, new SortAsceding()); 
-	    	  Collections.sort(L2, new SortDesceding()); 
-
-	    	  
 	      }
 	      
 	      else {
 	    	  Collections.sort(L1, new SortDesceding());
-	    	  Collections.sort(L2, new SortAsceding());	  
+	      }
+	      
+	      if(Descending_op2) {
+	    	  Collections.sort(L2, new SortDesceding());
+	      }
+	      
+	      else {
+	    	  Collections.sort(L2, new SortAsceding());   
 	      }
 	      
 	      // initialize bit array
 	      BitArray = new BitSet(number_of_rows);
 	      
 	      // initialize permutation array
-	      //permutation_array = new HashMap<RID,Integer>();
 	      permutation_array = new int[number_of_rows]; 
 	      
 	      
 	      for (i=0; i<number_of_rows; i++)
 	    	  for (int j=0;j<number_of_rows;j++) {
-	    		  if (L2.get(i).rid.equals(L1.get(j).rid)){
+	    		  if (L2.get(i).equals(L1.get(j))){
 	    			  permutation_array[i]=j;
 	    			  break;
 	    		  }
 	    	  }
-	    	  //permutation_array.put(L1.get(i).rid,i);
 
 	  }
 	  
@@ -283,8 +265,10 @@ public class SelfInequalityJoinTwoPredicate  extends Iterator
 		  }        
       	  
 	  // check if or equal or not
-	  if(outFilter[0].op.attrOperator  == AttrOperator.aopGE ||
-			  outFilter[0].op.attrOperator  == AttrOperator.aopLE) {
+	  if((outFilter[0].op.attrOperator  == AttrOperator.aopGE ||
+			  outFilter[0].op.attrOperator  == AttrOperator.aopLE) &&
+			  (outFilter[1].op.attrOperator  == AttrOperator.aopGE ||
+			  outFilter[1].op.attrOperator  == AttrOperator.aopLE)){
 		  
 		  eqoff=0;  
 	  }
@@ -333,54 +317,24 @@ public class SelfInequalityJoinTwoPredicate  extends Iterator
     	  
     	  if(get_from_outer) {
     		  // first parse of this outer index 
-    		  // so we need to set inner index
-    		  //System.out.println(L2.get(outer_index).rid);
-    		  //pos = permutation_array.get(L2.get(outer_index).rid);
+    		  // so we need to set inner index and current bit array position
     		  pos = permutation_array[outer_index];
     		  BitArray.set(pos);
     		  inner_index = pos+eqoff;
     		  get_from_outer = false;
     	  }
+    	  
     	  while(inner_index<number_of_rows) {
     		  if(BitArray.get(inner_index)) {
-    		      inner.closescan();
-    		      inner = hf.openScan();
-    			  if(inner.position(L1.get(inner_index).rid)) {
-    				  RID rid = new RID();
-    				  outer_tuple=inner.getNext(rid);
-    			  }
-    			  
-    		      inner.closescan();
-    		      inner = hf.openScan();
-    			  
-    			  if (inner.position(L1.get(pos).rid)) {
-    				  RID rid = new RID();
-    				  inner_tuple=inner.getNext(rid);
-    			  }
-    			  
-//    			  else {
-//    				  inner_index++;
-//    				  continue;
-//    			  }
-    		
-    		  inner_tuple.setHdr((short)in2_len, _in2,t2_str_sizescopy);
-    		  outer_tuple.setHdr((short)in2_len, _in2,t2_str_sizescopy);
-    		  if (PredEval.Eval(RightFilter, inner_tuple, null, _in2, null) == true)
-    		  {
-    			  if (PredEval.Eval(OutputFilter, outer_tuple, inner_tuple, _in1, _in2) == true)
-    			  {
-    				  // Apply a projection on the outer and inner tuples.
-    				  Projection.Join(outer_tuple, _in1, 
-    						  inner_tuple, _in2, 
-    						  Jtuple, perm_mat, nOutFlds);
-    				  inner_index++;
-    				  return Jtuple;
-    				}
-    			  }
+    			  outer_tuple = L1.get(inner_index).field_to_select;
+    			  inner_tuple = L1.get(pos).field_to_select;
+    			  Projection.Join(outer_tuple, _in1,inner_tuple, _in2, 
+    					  Jtuple, perm_mat, nOutFlds);
+    			  inner_index++;
+    			  return Jtuple;
     		  }
     		  inner_index++;
     	  }
-    	  //inner_index++;
     	  get_from_outer = true;
     	  outer_index++;
     	  } 
