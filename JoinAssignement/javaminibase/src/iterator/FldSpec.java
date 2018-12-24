@@ -5,7 +5,7 @@ public class FldSpec {
   public  RelSpec relation;
   public  int offset;
 
-  /**contrctor
+  /**constructor
    *@param _relation the relation is outer or inner
    *@param _offset the offset of the field
    */
@@ -14,5 +14,14 @@ public class FldSpec {
       relation = _relation;
       offset = _offset;
     }
-}
 
+/**constructor
+ *@param _fldSpec the FldSpec is outer or inner
+ */
+public  FldSpec(FldSpec fldspec)
+  {
+	relation = new RelSpec(fldspec.relation.key);
+	offset = fldspec.offset;
+
+  }
+}

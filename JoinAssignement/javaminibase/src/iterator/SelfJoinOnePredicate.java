@@ -221,13 +221,18 @@ public class SelfJoinOnePredicate  extends Iterator
     		  outer_tuple=L1.get(outer_index);
     		  inner_tuple=L1.get(inner_index);
     		      		  
+    		  // this function is used here to deal with duplicates it checks if the 
+    		  // 2 tuples satisfy the join predicate
+		      if (PredEval.Eval(OutputFilter, outer_tuple, inner_tuple, _in1, _in2) == true)
+			{
     		  // join inner and outer tuples
     		  Projection.Join(outer_tuple, _in1, inner_tuple, _in2, 
     				  Jtuple, perm_mat, nOutFlds);
     		  inner_index++;
     		  return Jtuple;
-    		  
-    		  }
+			} 
+		      inner_index++;
+		      }
     	  
     	  get_from_outer = true;
     	  outer_index++;
