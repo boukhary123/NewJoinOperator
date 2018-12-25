@@ -44,3 +44,5 @@
 /SortDesceding.class
 /RowWithTuple.class
 /InequalityJoinTwoPredicates.class
+/SelfInequalityJointwoPredicatesOptimized.class
+/SelfInequalityJoinTwoPredicateOptimized.class
