@@ -1951,7 +1951,7 @@ public class ParserTest  implements GlobalConst {
 	  public static void main(String argv[])
 	  {
 		  long start = System.currentTimeMillis();
-		  //ParserTest test = new ParserTest("../../query_2b.txt");
+		  ParserTest test = new ParserTest("../../query_2b.txt");
 		  //ParserTest4();
 	      long end = System.currentTimeMillis(); 
 		  
