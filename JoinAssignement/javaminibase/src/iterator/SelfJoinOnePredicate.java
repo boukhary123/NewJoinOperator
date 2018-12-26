@@ -179,6 +179,25 @@ public class SelfJoinOnePredicate  extends Iterator
 	  }     
     }
   
+  
+  public static boolean predicate_evaluate(int field1,int field2,int operator_type) {
+	  
+	  switch(operator_type) {
+	  case 1:
+		  return field1<field2;
+	  case 2:
+		  return field1>field2;
+		  
+	  case 4:
+		  return field1<=field2;
+		  
+	  case 5:	  
+		  return field1>= field2;  
+	  }
+	return false;
+	  
+  }
+  
   /**  
    *@return The joined tuple is returned
    *@exception IOException I/O errors

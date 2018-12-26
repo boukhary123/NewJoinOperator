@@ -81,7 +81,7 @@ public class SelfInequalityJoinTwoPredicate  extends Iterator
   private int number_of_rows;
   private   Heapfile  hf;
   private   Scan      inner;
-  private int permutation_array[];
+  private int permutation_array[], permutation_array_1_to_2[];
   int pos;
 
 
@@ -244,14 +244,23 @@ public class SelfInequalityJoinTwoPredicate  extends Iterator
 	      // initialize bit array
 	      BitArray = new BitSet(number_of_rows);
 	      
-	      // initialize permutation array
+	      // initialize permutation arrays
 	      permutation_array = new int[number_of_rows]; 
+	      permutation_array_1_to_2 = new int[number_of_rows];
 	      
 	      
 	      for (i=0; i<number_of_rows; i++)
 	    	  for (int j=0;j<number_of_rows;j++) {
 	    		  if (L2.get(i).equals(L1.get(j))){
 	    			  permutation_array[i]=j;
+	    			  break;
+	    		  }
+	    	  }
+	      
+	      for (i=0; i<number_of_rows; i++)
+	    	  for (int j=0;j<number_of_rows;j++) {
+	    		  if (L1.get(i).equals(L2.get(j))){
+	    			  permutation_array_1_to_2[i]=j;
 	    			  break;
 	    		  }
 	    	  }
@@ -312,7 +321,8 @@ public class SelfInequalityJoinTwoPredicate  extends Iterator
 	   UnknownKeyTypeException,
 	   Exception
     {
-    
+	  int outer_tuple_fld1,outer_tuple_fld2,inner_tuple_fld1,inner_tuple_fld2;
+	  
       while(outer_index<number_of_rows) {
     	  
     	  if(get_from_outer) {
@@ -328,11 +338,22 @@ public class SelfInequalityJoinTwoPredicate  extends Iterator
     		  if(BitArray.get(inner_index)) {
     			  outer_tuple = L1.get(inner_index).field_to_select;
     			  inner_tuple = L1.get(pos).field_to_select;
-    			  Projection.Join(outer_tuple, _in1,inner_tuple, _in2, 
-    					  Jtuple, perm_mat, nOutFlds);
-    			  inner_index++;
-    			  return Jtuple;
-    		  }
+    			  outer_tuple_fld1 = L1.get(inner_index).field_to_sort; 
+    			  outer_tuple_fld2 = L2.get(permutation_array_1_to_2[inner_index]).field_to_sort;
+    			  inner_tuple_fld1= L1.get(pos).field_to_sort;
+    			  inner_tuple_fld2 = L2.get(permutation_array_1_to_2[pos]).field_to_sort;
+    			 
+    			  if(SelfJoinOnePredicate.predicate_evaluate(
+    					  outer_tuple_fld1, inner_tuple_fld1, OutputFilter[0].op.attrOperator) &&
+    					  SelfJoinOnePredicate.predicate_evaluate(
+    	    					  outer_tuple_fld2, inner_tuple_fld2, OutputFilter[1].op.attrOperator)) {
+    				  
+    				  Projection.Join(outer_tuple, _in1,inner_tuple, _in2, 
+    						  Jtuple, perm_mat, nOutFlds);
+    				  inner_index++;
+    				  return Jtuple;
+    				  }
+    			  }
     		  inner_index++;
     	  }
     	  get_from_outer = true;
