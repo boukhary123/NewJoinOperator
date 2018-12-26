@@ -139,7 +139,8 @@ public class ParserTest  implements GlobalConst {
 		    	
 		    	if (q.R1_hf==null && q.R2_hf == null) {
 		    		
-		    		boolean done = false;
+		    		boolean done_inner = false;
+		    		boolean done_outer = false;
 		    		
 		    		String relation = q.relations.get(0);
 		    		
@@ -158,9 +159,9 @@ public class ParserTest  implements GlobalConst {
 //	  					rel_reader2.mark(0);
 	  					
 	  					
-	  					for(int i = 0; i<400 && done == false ;i++){
+	  					for(int i = 0; i<400 && done_outer == false ;i++){
 	  						
-	  						
+	  						done_inner = false;
 	  						int R_count;
 		  					Tuple t = new Tuple();
 				  		    try {
@@ -198,6 +199,7 @@ public class ParserTest  implements GlobalConst {
 				  			  	while(R_count<5000) {
 			  			  			
 			  			  			if((rec1 = rel_reader1.readLine()) == null) {
+			  			  				done_outer = true;
 			  			  				break;
 			  			  			}
 			  			  			
@@ -232,8 +234,8 @@ public class ParserTest  implements GlobalConst {
 				  		    rel_reader2 = new BufferedReader(new FileReader(rel_file));
 		  					rec2 = rel_reader2.readLine();
 		  					
-	  						for(int j = 0; j< 400 && done == false; j++) {
-	  							
+	  						for(int j = 0; j< 400 && done_inner == false; j++) {
+	  								
 				  					t = new Tuple();
 						  		    try {
 						  		      t.setHdr((short) q.R2_no_flds,q.R2types, null);
@@ -274,7 +276,7 @@ public class ParserTest  implements GlobalConst {
 						  			  			
 						  			  			if((rec2 = rel_reader2.readLine()) == null) 
 						  			  				{
-						  			  					done = true;
+						  			  					done_inner = true;
 						  			  					break;
 						  			  				}
 						  			  			
@@ -768,7 +770,8 @@ public class ParserTest  implements GlobalConst {
 		    	
 		    	if (q.R1_hf==null && q.R2_hf == null) {
 		    		
-		    		boolean done = false;
+		    		boolean done_inner = false;
+		    		boolean done_outer = false;
 		    		
 		    		String relation = q.relations.get(0);
 		    		
@@ -786,9 +789,9 @@ public class ParserTest  implements GlobalConst {
 //	  					rel_reader1.mark(0);
 //	  					rel_reader2.mark(0);
 	  					
-	  					for(int i = 0; i<400 && done == false ;i++){
+	  					for(int i = 0; i<400 && done_outer == false ;i++){
 	  						
-	  						
+	  						done_inner = false;
 	  						int R_count;
 		  					Tuple t = new Tuple();
 				  		    try {
@@ -825,7 +828,10 @@ public class ParserTest  implements GlobalConst {
 //				  			  		rel_reader1.reset();
 				  			  	while(R_count<5000) {
 			  			  			
-			  			  			if((rec1 = rel_reader1.readLine()) == null) break;
+			  			  			if((rec1 = rel_reader1.readLine()) == null) {
+			  			  				done_outer = true;
+			  			  				break;
+			  			  			}
 			  			  			
 			  			  			// read each field for each tuple
 			  			  			List<String> fields = Arrays.asList(rec1.split(","));		
@@ -859,7 +865,7 @@ public class ParserTest  implements GlobalConst {
 
 		  					rec2 = rel_reader2.readLine();
 				  		      
-	  						for(int j = 0; j< 400 && done == false; j++) {
+	  						for(int j = 0; j< 400 && done_inner == false; j++) {
 	  							
 				  					t = new Tuple();
 						  		    try {
@@ -901,7 +907,7 @@ public class ParserTest  implements GlobalConst {
 						  			  			
 						  			  			if((rec2 = rel_reader2.readLine()) == null) 
 						  			  				{
-						  			  					done = true;
+						  			  					done_inner = true;
 						  			  					break;
 						  			  				}
 						  			  			
@@ -1355,7 +1361,7 @@ public class ParserTest  implements GlobalConst {
 	  public static void main(String argv[])
 	  {
 		  long start = System.currentTimeMillis();
-		  ParserTest test = new ParserTest("../../query_2a.txt");
+		  ParserTest test = new ParserTest("../../query_2b.txt");
 	      long end = System.currentTimeMillis(); 
 		  
 	      System.out.println("NLJ takes " + 
