@@ -338,6 +338,8 @@ public class SelfInequalityJoinTwoPredicate  extends Iterator
     	  get_from_outer = true;
     	  outer_index++;
     	  } 
+      
+      inner.closescan();
       return null;
       }
  

@@ -93,6 +93,10 @@ public class SelfJoinOnePredicate  extends Iterator
       
       perm_mat = proj_list;
       nOutFlds = n_out_flds;
+     
+      // variable to specify sort oder of the array 
+      boolean Ascending_op1 = false;
+      
       try {
     	  t_size = TupleUtils.setup_op_tuple(Jtuple, Jtypes,
 					   in1, len_in1, in2, len_in2,
@@ -119,15 +123,17 @@ public class SelfJoinOnePredicate  extends Iterator
     	  
     	  
     	  // sort array in ascending order
-    	  sortoder = new TupleOrder(TupleOrder.Ascending);  	  
+    	  //sortoder = new TupleOrder(TupleOrder.Ascending);
+    	  Ascending_op1 = true;
       }
       
       else if (outFilter[0].op.attrOperator  == AttrOperator.aopLT ||
     		  outFilter[0].op.attrOperator  == AttrOperator.aopLE){
     	  
     	  // sort array in descending order
-    	  sortoder = new TupleOrder(TupleOrder.Descending);
-    	    	  
+    	  //sortoder = new TupleOrder(TupleOrder.Descending);
+    	  Ascending_op1 = false;
+    	  
       }
       
 	  
