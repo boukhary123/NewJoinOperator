@@ -198,20 +198,21 @@ public class QueryParser {
 
 					  			  		String rec;
 					  			  		rec = rel_reader.readLine();
-					  			  		int i = 0;
-					  			  		while((rec = rel_reader.readLine()) != null && i<30000) {
+					  			  		while((rec = rel_reader.readLine()) != null) {
 					  			  			
-					  			  			// read each field for each tuple
-					  			  			List<String> fields = Arrays.asList(rec.split(","));		  		
-					  			  			t.setIntFld(1, Integer.parseInt(fields.get(0)));
-					  				  		t.setIntFld(2, Integer.parseInt(fields.get(1)));
-					  				  		t.setIntFld(3, Integer.parseInt(fields.get(2)));
-					  				  		t.setIntFld(4, Integer.parseInt(fields.get(3)));
+				  			  			
+				  			  			// read each field for each tuple
+				  			  			List<String> fields = Arrays.asList(rec.split(","));	
+				  			  			
+				  			  			for(int k=0; k<R1_no_flds;k++) {
+				  			  			
+				  			  			t.setIntFld(k+1, Integer.parseInt(fields.get(k)));
+				  			  			
+				  			  			}
 					  				  		
 					  				        try {
 					  				        	// insert the tuple into the heap file
 					  				        	rid = R1_hf.insertRecord(t.returnTupleByteArray());
-					  				        	i++;
 					  				              }
 					  				              catch (Exception e) {
 					  				        	System.err.println("*** error in Heapfile.insertRecord() ***");
@@ -351,13 +352,15 @@ public class QueryParser {
 					  			  		String rec;
 					  			  		rec = rel_reader.readLine();
 					  			  		while((rec = rel_reader.readLine()) != null) {
-					  			  			List<String> fields = Arrays.asList(rec.split(","));
 					  			  			
-					  			  			// extract attribute values for each record
-					  			  			t.setIntFld(1, Integer.parseInt(fields.get(0)));
-					  				  		t.setIntFld(2, Integer.parseInt(fields.get(1)));
-					  				  		t.setIntFld(3, Integer.parseInt(fields.get(2)));
-					  				  		t.setIntFld(4, Integer.parseInt(fields.get(3)));
+				  			  			// read each field for each tuple
+				  			  			List<String> fields = Arrays.asList(rec.split(","));	
+				  			  			
+				  			  			for(int k=0; k<R2_no_flds;k++) {
+				  			  			
+				  			  			t.setIntFld(k+1, Integer.parseInt(fields.get(k)));
+				  			  			
+				  			  			}
 					  				  		
 					  				        try {
 					  				        	// insert the type into the heap file
