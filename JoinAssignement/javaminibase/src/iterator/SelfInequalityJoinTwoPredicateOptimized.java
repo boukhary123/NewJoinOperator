@@ -276,7 +276,7 @@ public class SelfInequalityJoinTwoPredicateOptimized  extends Iterator
 	   Exception
     {
     
-	  int max_tmp; // variable used to store a temporary value of potential the next value of maxIndex
+	  int max_tmp; // variable used to store a temporary value of the potential the next value of maxIndex
 	  
       while(outer_index<number_of_rows) {
     	  

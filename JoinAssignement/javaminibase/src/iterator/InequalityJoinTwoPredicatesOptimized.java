@@ -15,7 +15,7 @@ import java.io.*;
 *  This file contains an implementation of the Inequality join loop with two predicates.
 */
 
-public class InequalityJoinTwoPredicates  extends Iterator 
+public class InequalityJoinTwoPredicatesOptimized  extends Iterator 
 {
   private AttrType      _in1[],  _in2[];
   private   int        in1_len, in2_len;
@@ -28,8 +28,8 @@ public class InequalityJoinTwoPredicates  extends Iterator
   private   Tuple     Jtuple;           // Joined tuple
   private   FldSpec   perm_mat[];
   private   int        nOutFlds;
-  private BitSet BitArray; 
-  private int eqoff;
+  private BitSet BitArray,BitMap; 
+  private int eqoff,chunks,maxIndex,bitmap_index;
   private int i_index,j_index,k_index;
   private ArrayList<Row> L1;
   private ArrayList<RowWithTuple> L2;
@@ -39,7 +39,6 @@ public class InequalityJoinTwoPredicates  extends Iterator
   private   Heapfile  hf1,hf2;
   private   Scan      outer,inner;
   private int permutation_array[],permutation_array_prime[],offset1[],offset2[],off1,off2;
-  //private ArrayList<Integer> offset1,offset2;
 
 
   
@@ -61,7 +60,7 @@ public class InequalityJoinTwoPredicates  extends Iterator
    *@exception IOException some I/O fault
    *@exception NestedLoopException exception from this class
    */
-  public InequalityJoinTwoPredicates( AttrType    in1[],    
+  public InequalityJoinTwoPredicatesOptimized( AttrType    in1[],    
 			   int     len_in1,           
 			   short   t1_str_sizes[],
 			   AttrType    in2[],         
@@ -74,7 +73,8 @@ public class InequalityJoinTwoPredicates  extends Iterator
 			   CondExpr outFilter[],      
 			   CondExpr rightFilter[],    
 			   FldSpec   proj_list[],
-			   int        n_out_flds
+			   int        n_out_flds,
+			   int size_of_chuncks
 			   ) throws IOException,NestedLoopException
     {
 	  _in1 = new AttrType[in1.length];
@@ -101,6 +101,9 @@ public class InequalityJoinTwoPredicates  extends Iterator
       // variable to specify sort oder of the array 
       boolean Descending_op1 = false;
       boolean Ascending_op2 = false;
+      
+      // set chunk size that one bit map elements represents
+      chunks = size_of_chuncks;
       
       try {
     	  t_size = TupleUtils.setup_op_tuple(Jtuple, Jtypes,
@@ -237,6 +240,10 @@ public class InequalityJoinTwoPredicates  extends Iterator
 	      // initialize bit array
 	      BitArray = new BitSet(number_of_rows_prime);
 	      
+	      // initialize Bit Map
+	      BitMap = new BitSet((int)(number_of_rows/chunks));
+	      maxIndex=0;
+	      
 	      // initialize permutation array
 	      permutation_array = new int[number_of_rows]; 
 	      permutation_array_prime = new int[number_of_rows_prime]; 
@@ -262,8 +269,8 @@ public class InequalityJoinTwoPredicates  extends Iterator
 
 	      offset1 = new  int[number_of_rows];
 	      offset2 = new int[number_of_rows];
-	      SortMerge(L1,L1_prime,offset1,!Descending_op1);
-	      SortMergeWithTuple(L2,L2_prime,offset2,Ascending_op2);
+	      InequalityJoinTwoPredicates.SortMerge(L1,L1_prime,offset1,!Descending_op1);
+	      InequalityJoinTwoPredicates.SortMergeWithTuple(L2,L2_prime,offset2,Ascending_op2);
 	      
    
 	  }
@@ -291,82 +298,7 @@ public class InequalityJoinTwoPredicates  extends Iterator
     }
   
   
-  public static void SortMerge(ArrayList<Row> arr1,
-		  ArrayList<RowWithTuple> arr2, int offset[], boolean Ascending) {
-	  int m = arr2.size();
-	  int n = arr1.size();
-	  int i=0,j=0;
-
-	  while(i < n) {
-    	  
-    	  if(arr1.get(i).field_to_sort == arr2.get(j).field_to_sort) {
-    		  
-    		  offset[i]=j;
-    		  i++;
-    		  
-    		  if (j+1 < m)
-    			  j++;
-    		  else 
-    			  j = m-1;
-    	  }
-    	  
-    	  else if(Ascending? arr1.get(i).field_to_sort<arr2.get(j).field_to_sort:
-    		  arr1.get(i).field_to_sort>arr2.get(j).field_to_sort) {
-    		  offset[i]=j-1;
-    		  i++;
-    	  }
-    	  
-    	  else {
-    		  if (j+1 < m)
-    			  j++;
-    		  
-    		  else { 
-    			  j = m-1;
-    			  offset[i]=j+1;
-    			  i++;
-    		  }
-    	  }
-      }
-  }
   
-  
-  public static void SortMergeWithTuple(ArrayList<RowWithTuple> arr1,
-		  ArrayList<Row> arr2, int offset[], boolean Ascending) {
-	  int m = arr2.size();
-	  int n = arr1.size();
-	  int i=0,j=0;
-
-	  while(i < n) {
-    	  
-    	  if(arr1.get(i).field_to_sort == arr2.get(j).field_to_sort) {
-    		  
-    		  offset[i]=j;
-    		  i++;
-    		  
-    		  if (j+1 < m)
-    			  j++;
-    		  else 
-    			  j = m-1;
-    	  }
-    	  
-    	  else if(Ascending? arr1.get(i).field_to_sort<arr2.get(j).field_to_sort:
-    		  arr1.get(i).field_to_sort>arr2.get(j).field_to_sort) {
-    		  offset[i]=j-1;
-    		  i++;
-    	  }
-    	  
-    	  else {
-    		  if (j+1 < m)
-    			  j++;
-    		  
-    		  else { 
-    			  j = m-1;
-    			  offset[i]=j+1;
-    			  i++;
-    		  }
-    	  }
-      }
-  }
   
   /**  
    *@return The joined tuple is returned
@@ -400,6 +332,7 @@ public class InequalityJoinTwoPredicates  extends Iterator
 	   UnknownKeyTypeException,
 	   Exception
     {
+	  int max_tmp; // variable used to store a temporary value of the potential the next value of maxIndex
     
       while(i_index<number_of_rows) {
     	  
@@ -410,6 +343,13 @@ public class InequalityJoinTwoPredicates  extends Iterator
     		  for(j_index=0;j_index< Math.min(off2+1,L2_prime.size());j_index++){
     			  
     			  BitArray.set(permutation_array_prime[j_index]);
+    			  
+        		  // update maxIndex and set current bitmap chunk to 1
+    			  max_tmp = (int)(permutation_array_prime[j_index]/chunks); 
+        		  if(max_tmp>maxIndex) 
+        			  maxIndex = max_tmp;
+        		  BitMap.set(max_tmp);
+    			  
     		  }
     		  
     		  off1 = offset1[permutation_array[i_index]];
@@ -419,6 +359,23 @@ public class InequalityJoinTwoPredicates  extends Iterator
     	  }
     	  
     	  while(k_index<number_of_rows_prime) {
+    		  
+    		  // use bitmap to optimize bit array scanning
+    		  
+    		  // retrieve current bitmap index
+    		  bitmap_index = (int)(k_index/chunks);
+    		  if (bitmap_index > maxIndex)
+    			  // current bitmap index is greater than the maximum index
+    			  // of the bitmap that contains a 1 which means next chunks
+    			  // of the bit array all zero so no need to scan next chunks 
+    			  break;
+    		  
+    		  if (!BitMap.get(bitmap_index)) {
+    			  // current bit array chunk doesn't contain a 1 
+    			  // so move to next chunk
+    			  k_index += chunks;
+    			  continue;
+    		  }
     		  
     		  if(BitArray.get(k_index)) {
     			  outer_tuple = L2.get(i_index).field_to_select;
