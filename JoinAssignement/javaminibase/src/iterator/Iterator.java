@@ -5,12 +5,19 @@ import diskmgr.*;
 import bufmgr.*;
 import index.*;
 import java.io.*;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  *All the relational operators and access methods are iterators.
  */
 public abstract class Iterator implements Flags {
   
+	
+	public static BufferedReader reader;
+	
+	public boolean firstHeapFileCall;
+	
   /**
    * a flag to indicate whether this iterator has been closed.
    * it is set to true the first time the <code>close()</code> 
@@ -130,4 +137,88 @@ public abstract class Iterator implements Flags {
     return tmpId;
 
   } // end of newPage
+  
+  public boolean getNextHeapFile(int R2_no_flds, AttrType[] R2types, String hf_filename) {
+	  
+	  boolean end = false;
+	  Heapfile hf = null;
+	  
+		// create a tuple for heap file
+		Tuple t = new Tuple();
+	    try {
+	      t.setHdr((short) R2_no_flds,R2types, null);
+	    }
+	    catch (Exception e) {
+	      System.err.println("*** error in Tuple.setHdr() ***");
+	      e.printStackTrace();
+	    }
+	    
+	    int size = t.size();
+	    
+	    // inserting the tuple into file "sailors"
+	    RID             rid;
+	    hf = null;
+	    try {
+	    	// create heap file for R2
+	    	hf = new Heapfile(hf_filename);
+	    }
+	    catch (Exception e) {
+	      System.err.println("*** error in Heapfile constructor ***");
+	      e.printStackTrace();
+	    }
+	    
+	    t = new Tuple(size);
+	    try {
+	      t.setHdr((short) R2_no_flds, R2types, null);
+	    }
+	    catch (Exception e) {
+	      System.err.println("*** error in Tuple.setHdr() ***");
+	      e.printStackTrace();
+	    }
+		
+	
+	      try {
+				int count = 0;
+		  		String rec;
+		  		
+		  		if(firstHeapFileCall) {
+		  		rec = reader.readLine();
+		  		firstHeapFileCall = false;
+		  		}
+		  		
+		  		while(count < 10) {
+		  			
+		  		if((rec = reader.readLine())==null) {
+		  			end = true;
+		  			break;
+		  		}
+	  			// read each field for each tuple
+	  			List<String> fields = Arrays.asList(rec.split(","));	
+	  			
+	  			for(int k=0; k<R2_no_flds;k++) {
+	  			
+	  			t.setIntFld(k+1, Integer.parseInt(fields.get(k)));
+	  			
+	  			}
+			  		
+			        try {
+			        	// insert the type into the heap file
+			        	rid = hf.insertRecord(t.returnTupleByteArray());
+			        	count++;
+			              }
+			              catch (Exception e) {
+			        	System.err.println("*** error in Heapfile.insertRecord() ***");
+			        	
+			        	e.printStackTrace();
+			              }  
+		  		}
+	  		
+	      }
+	      catch (Exception e) {
+		System.err.println("*** Heapfile error in Tuple.setStrFld() ***");
+		e.printStackTrace();
+	      }
+	  
+	  return end;
+  }
 }
