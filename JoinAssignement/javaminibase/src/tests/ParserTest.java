@@ -437,7 +437,7 @@ public class ParserTest  implements GlobalConst {
 							  q.R2types, q.R2_no_flds, null,
 							  10,
 							  am, (q.relations.size()>1)? "R2.in" : "R1.in",
-							  q.Predicate, null, q.q_projection ,2);
+							  q.Predicate, null, q.q_projection ,2, q.relations.get(0));
 			    }
 			    
 			    catch (Exception e) {
@@ -657,8 +657,8 @@ public class ParserTest  implements GlobalConst {
 				  						      nlj = new SelfJoinOnePredicate (q.R1types,q.R1_no_flds, null,
 				  										  q.R2types, q.R2_no_flds, null,
 				  										  10,
-				  										  am,"R2.in",
-				  										  q.Predicate, null, q.q_projection ,2);
+				  										  am,"R.in",
+				  										  q.Predicate, null, q.q_projection ,2,q.relations.get(0));
 				  						    }
 				  						    
 				  						    catch (Exception e) {
@@ -672,7 +672,7 @@ public class ParserTest  implements GlobalConst {
 				  						    t = null;
 				  						    try {
 				  						      while ((t = nlj.get_next()) != null) {
-//				  						    	  t.print(q.projectionTypes);
+				  						    	  t.print(q.projectionTypes);
 				  						    	  row_count++;
 				  						        L_selfjoin_one.add(new Row_to_compare(t.getIntFld(1),t.getIntFld(2)));
 
@@ -2016,24 +2016,183 @@ public class ParserTest  implements GlobalConst {
 		    }
 	  }	  
 		  
+	  public static void ParserTest7()
+	  {
+		  L_selfjoin_one = new ArrayList<Row_to_compare>();
+
+		  int row_count = 0;
+		  L_nlj = new ArrayList<Row_to_compare>();
+		  String dbpath = "/tmp/"+System.getProperty("user.name")+".minibase.jointestdb"; 
+		    String logpath = "/tmp/"+System.getProperty("user.name")+".joinlog";
+
+		    String remove_cmd = "/bin/rm -rf ";
+		    String remove_logcmd = remove_cmd + logpath;
+		    String remove_dbcmd = remove_cmd + dbpath;
+		    String remove_joincmd = remove_cmd + dbpath;
+
+		    try {
+		      Runtime.getRuntime().exec(remove_logcmd);
+		      Runtime.getRuntime().exec(remove_dbcmd);
+		      Runtime.getRuntime().exec(remove_joincmd);
+		    }
+		    catch (IOException e) {
+		      System.err.println (""+e);
+		    }
+
+		   
+		    /*
+		    ExtendedSystemDefs extSysDef = 
+		      new ExtendedSystemDefs( "/tmp/minibase.jointestdb", "/tmp/joinlog",
+					      1000,500,200,"Clock");
+		    */
+
+		    SystemDefs sysdef = new SystemDefs( dbpath, 1000, NUMBUF, "Clock" );
+
+		  
+		  File query_file = new File("../../query_2a.txt");
+		  QueryParser q = new QueryParser(query_file);
+		  if (q.R1_hf !=null || q.R2_hf != null) {
+			  
+		  FileScan am = null;
+		  try {
+		      am = new FileScan("R1.in",
+					   q.R1types, null, (short) q.R1_no_flds, q.R1_no_flds,
+					   q.R1_projection,null);
+		    }
+		    
+		    catch (Exception e) {
+		      System.err.println ("*** Error creating scan for Index scan");
+		      System.err.println (""+e);
+		      Runtime.getRuntime().exit(1);
+		    }
+		    
+		    
+		    SelfJoinOnePredicate nlj = null;
+		    
+			    try {
+			      nlj = new SelfJoinOnePredicate (q.R1types,q.R1_no_flds, null,
+							  q.R2types, q.R2_no_flds, null,
+							  10,
+							  am, (q.relations.size()>1)? "R2.in" : "R1.in",
+							  q.Predicate, null, q.q_projection ,2, q.relations.get(0));
+			    }
+			    
+			    catch (Exception e) {
+			      System.err.println ("*** Error preparing for nested_loop_join");
+			      System.err.println (""+e);
+			      e.printStackTrace();
+			      Runtime.getRuntime().exit(1);
+			    }
+			    
+			    Tuple t = new Tuple();
+			    t = null;
+			    try {
+			      while ((t = nlj.get_next()) != null) {
+			        //t.print(q.projectionTypes);
+			        row_count++;
+			        L_selfjoin_one.add(new Row_to_compare(t.getIntFld(1),t.getIntFld(2)));
+			      }
+			      Collections.sort(L_selfjoin_one,new Sortasceding());
+			    }
+			    catch (Exception e) {
+			      System.err.println (""+e);
+			      e.printStackTrace();
+			      Runtime.getRuntime().exit(1);
+			    }
+		    }
+		    else {
+		    	
+		    	if (q.R1_hf==null && q.R2_hf == null)
+		    	{
+		    		
+		    		String relation = q.relations.get(0);
+		    		
+		    		File rel_file = new File("../../"+relation+".txt");
+		    		
+		    		
+						  		      
+//						  		    FileScan am = null;
+//				  					  try {
+//				  					      am = new FileScan("R1.in",
+//				  								   q.R1types, null, (short) q.R1_no_flds, q.R1_no_flds,
+//				  								   q.R1_projection,null);
+//				  					    }
+//				  					    
+//				  					    catch (Exception e) {
+//				  					      System.err.println ("*** Error creating scan for Index scan");
+//				  					      System.err.println (""+e);
+//				  					      Runtime.getRuntime().exit(1);
+//				  					    }
+				  					    
+				  					    
+				  					    SelfJoinOnePredicate nlj = null;
+				  					    
+				  						    try {
+				  						      nlj = new SelfJoinOnePredicate (q.R1types,q.R1_no_flds, null,
+				  										  q.R2types, q.R2_no_flds, null,
+				  										  10,
+				  										  null,"R.in",
+				  										  q.Predicate, null, q.q_projection ,2,q.relations.get(0));
+				  						    }
+				  						    
+				  						    catch (Exception e) {
+				  						      System.err.println ("*** Error preparing for nested_loop_join");
+				  						      System.err.println (""+e);
+				  						      e.printStackTrace();
+				  						      Runtime.getRuntime().exit(1);
+				  						    }
+				  						    
+				  						    Tuple t = new Tuple();
+				  						    t = null;
+				  						    try {
+				  						      while ((t = nlj.get_next()) != null) {
+//				  						    	  t.print(q.projectionTypes);
+				  						    	  row_count++;
+				  						        L_selfjoin_one.add(new Row_to_compare(t.getIntFld(1),t.getIntFld(2)));
+
+				  						      }
+				  			
+				  						    }
+				  						    catch (Exception e) {
+				  						      System.err.println (""+e);
+				  						      e.printStackTrace();
+				  						      Runtime.getRuntime().exit(1);
+				  						    }
+		    		}
+				  						    
+	  			}
+	  						
+	  					
+	  					
+	  				System.out.println(row_count);
+	  				Collections.sort(L_selfjoin_one,new Sortasceding());
+		    		
+		    	
+		    
+}
+		    
+		
+	  
 	  
 	  	  
 	  public static void main(String argv[])
 	  {
-		  long start = System.currentTimeMillis();
-		  //ParserTest test = new ParserTest("../../query_2b.txt");
-		  ParserTest4();
-	      long end = System.currentTimeMillis(); 
+//		  long start = System.currentTimeMillis();
+//		  //ParserTest test = new ParserTest("../../query_2b.txt");
+//		  ParserTest4();
+//	      long end = System.currentTimeMillis(); 
+//		  
+//	      System.out.println("NLJ takes " + 
+//                  (end - start) + "ms"); 
+//	      start = System.currentTimeMillis();
+//		  ParserTest6();
+//		  end = System.currentTimeMillis(); 
+//		  System.out.println("IESelfJoin takes " + 
+//                  (end - start) + "ms");
+//		  
+//
+//		  compare_2_arrays(L_ieqjoin,L_ieqjoin_optimized);
 		  
-	      System.out.println("NLJ takes " + 
-                  (end - start) + "ms"); 
-	      start = System.currentTimeMillis();
-		  ParserTest6();
-		  end = System.currentTimeMillis(); 
-		  System.out.println("IESelfJoin takes " + 
-                  (end - start) + "ms");
-		  
-
-		  compare_2_arrays(L_ieqjoin,L_ieqjoin_optimized);
+		  ParserTest7();
 		  }
 }
