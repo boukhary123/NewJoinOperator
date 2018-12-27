@@ -118,7 +118,7 @@ public class SelfJoinOnePredicate  extends Iterator
       
       // set up the reader that will read the records from the text file
       this.firstHeapFileCall = true;
-      this.reader = new BufferedReader(new FileReader(file_path));
+      this.reader = new BufferedReader(new FileReader("../../"+file_path+".txt"));
                 
       // check how we should sort the L1 array (the heap file)
       if (outFilter[0].op.attrOperator  == AttrOperator.aopGT ||

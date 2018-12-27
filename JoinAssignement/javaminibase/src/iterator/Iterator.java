@@ -186,7 +186,7 @@ public abstract class Iterator implements Flags {
 		  		firstHeapFileCall = false;
 		  		}
 		  		
-		  		while(count < 10) {
+		  		while(count < 10000) {
 		  			
 		  		if((rec = reader.readLine())==null) {
 		  			end = true;
