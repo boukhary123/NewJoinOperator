@@ -53,7 +53,8 @@ public class InequalityJoinTwoPredicates  extends Iterator
    *@param  t2_str_sizes shows the length of the string fields.
    *@param amt_of_mem  IN PAGES
    *@param am1  access method for left i/p to join
-   *@param relationName  access heap file for right i/p to join
+   *@param relationName1  access heap file for left i/p to join
+   *@param relationName1  access heap file for right i/p to join
    *@param outFilter   select expressions
    *@param rightFilter reference to filter applied on right i/p
    *@param proj_list shows what input fields go where in the output tuple
@@ -112,7 +113,8 @@ public class InequalityJoinTwoPredicates  extends Iterator
     		  throw new NestedLoopException(
     				  e,"TupleUtilsException is caught by SelfInequalityjoin.java");
     		  }
-      
+     
+     // initialize indexes used in the join loop  
      i_index=0;
      j_index=0;
      k_index=0;
@@ -152,17 +154,26 @@ public class InequalityJoinTwoPredicates  extends Iterator
 		  L1_prime = new ArrayList<RowWithTuple>();
 		  L2_prime = new ArrayList<Row>(); 
 
+		  // heap file to read elements for left input 
 		  hf1 = new Heapfile(relationName1);
+		  // scan elements of the heapfile
 		  outer = hf1.openScan();
+		  
+		  // heap file to read elements for right input
 		  hf2 = new Heapfile(relationName2);
+		  // scan elements of the heapfile
 		  inner= hf2.openScan();
+		  
+		  // keep track of tuple id
 	      RID rid = new RID();
 	      int field_to_sort;
+	      
+	      // used to project tuples on the field to be selected 
 	      FldSpec   perm[], perm_prime[];
 	      perm = new FldSpec[1];
 	      perm[0] = new FldSpec(perm_mat[0].relation,perm_mat[0].offset);
 	      perm_prime = new FldSpec[1];
-	      perm_prime[0]= new FldSpec(perm_mat[1]); // not sure to be checked
+	      perm_prime[0]= new FldSpec(perm_mat[1]); 
 	      perm_prime[0].relation.key=0;
  
 	      // initialize L1 and L2 array

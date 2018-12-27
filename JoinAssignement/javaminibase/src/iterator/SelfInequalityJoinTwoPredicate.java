@@ -15,7 +15,7 @@ import java.io.*;
 *  This file contains an implementation of the self join loop with two predicates.
 */
 
-// this class is used to represent in a tuple to be sorted in an array
+// this class is used to represent a tuple to be sorted in an array
 class Row 
 { 
 	public RID rid; // the record id number
@@ -190,29 +190,51 @@ public class SelfInequalityJoinTwoPredicate  extends Iterator
 	  try {	  
 		  
 		  int i=0;
+		  // we only return elements from L1 array so we need to store only in L1 
+		  // the tuples to be returned which is implemented in the RowWithTuple class
+		  
 		  L1 = new ArrayList<RowWithTuple>();
+		  
+		  // we don't need to store tuples in this array
 		  L2 = new ArrayList<Row>();
-
+		  
+		  // heap file containing the tuples to be returned
 		  hf = new Heapfile(relationName);
+		  
+		  // scan the elements of the heap file
 		  inner = hf.openScan();
+		  
+		  // this variable is used to keep track of the record id of the current tuple
 	      RID rid = new RID();
+	      
+	      // this variable is used to keep track of the field
+	      // to be sorted of the current tuple being read 
 	      int field_to_sort;
+	      
+	      // perm is used to project the read tuples from the heapfile
+	      // on the field to be selected to avoid unnecessary data being stored in the array
 	      FldSpec   perm[];
 	      perm = new FldSpec[1];
 	      perm[0]=perm_mat[0];
  
-	      // initialize L1 and L2 array
+	      // read tuples from the heap file and fill the L1 array and L2 array
 	      while ((inner_tuple = inner.getNext(rid)) != null) {
+	    	  
+	    	  // set the header of the read tuple
 			  inner_tuple.setHdr((short)in1_len, _in1,t1_str_sizes);
 			  
-			  // add an element to L1 array
+			  // set the field to be sorted
 			  field_to_sort=inner_tuple.getIntFld(outFilter[0].operand1.symbol.offset);
+			  
+			  // project the tuple on the field to be selected finally
 			  Projection.Project(inner_tuple, _in1, Jtuple, perm,1);
+			  
+			  // add element to L1 array
 	    	  L1.add(new RowWithTuple(rid, field_to_sort,Jtuple));
 			  
-	    	  // add an element to L2 array
 	    	  field_to_sort=inner_tuple.getIntFld(outFilter[1].operand1.symbol.offset);
 			  Projection.Project(inner_tuple, _in1, Jtuple, perm,1);
+			  // add element to L2 array
 	    	  L2.add(new Row(rid, field_to_sort));
 	    	  
 	    	  // keep track of the number of rows
@@ -224,7 +246,8 @@ public class SelfInequalityJoinTwoPredicate  extends Iterator
 	      
 	      number_of_rows = i;	
 	      
-
+	      // sort L1 and L2 array according to sort order
+	      
 	      if (Ascending_op1) {
 	    	  Collections.sort(L1, new SortAsceding()); 
 	      }
@@ -246,9 +269,13 @@ public class SelfInequalityJoinTwoPredicate  extends Iterator
 	      
 	      // initialize permutation arrays
 	      permutation_array = new int[number_of_rows]; 
+	      
+	      // this permutation array is used to retrieve fields
+	      // of specific elements and compare them before returning the joined 
+	      // tuple
 	      permutation_array_1_to_2 = new int[number_of_rows];
 	      
-	      
+	      // filling the permutation arrays
 	      for (i=0; i<number_of_rows; i++)
 	    	  for (int j=0;j<number_of_rows;j++) {
 	    		  if (L2.get(i).equals(L1.get(j))){
@@ -336,13 +363,18 @@ public class SelfInequalityJoinTwoPredicate  extends Iterator
     	  
     	  while(inner_index<number_of_rows) {
     		  if(BitArray.get(inner_index)) {
+    			// get outer and inner tuple
     			  outer_tuple = L1.get(inner_index).field_to_select;
     			  inner_tuple = L1.get(pos).field_to_select;
+    			  
+    			  // retrieve fields to compare them to avoid duplicates being returned 
     			  outer_tuple_fld1 = L1.get(inner_index).field_to_sort; 
     			  outer_tuple_fld2 = L2.get(permutation_array_1_to_2[inner_index]).field_to_sort;
     			  inner_tuple_fld1= L1.get(pos).field_to_sort;
     			  inner_tuple_fld2 = L2.get(permutation_array_1_to_2[pos]).field_to_sort;
     			 
+    			  // this function is used here to deal with duplicates it checks if the 
+        		  // 2 tuples satisfy the join predicate
     			  if(SelfJoinOnePredicate.predicate_evaluate(
     					  outer_tuple_fld1, inner_tuple_fld1, OutputFilter[0].op.attrOperator) &&
     					  SelfJoinOnePredicate.predicate_evaluate(
@@ -359,7 +391,7 @@ public class SelfInequalityJoinTwoPredicate  extends Iterator
     	  get_from_outer = true;
     	  outer_index++;
     	  } 
-      
+      // all elements are finished
       return null;
       }
  

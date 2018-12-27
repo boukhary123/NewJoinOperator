@@ -1030,6 +1030,7 @@ public class ParserTest  implements GlobalConst {
 	  
 	  public static void ParserTest4()
 	  {
+		  int row_count = 0;
 		  L_ieqjoin = new ArrayList<Row_to_compare>();
 		  String dbpath = "/tmp/"+System.getProperty("user.name")+".minibase.jointestdb"; 
 		    String logpath = "/tmp/"+System.getProperty("user.name")+".joinlog";
@@ -1058,7 +1059,7 @@ public class ParserTest  implements GlobalConst {
 		    SystemDefs sysdef = new SystemDefs( dbpath, 1000, NUMBUF, "Clock" );
 
 		  
-		  File query_file = new File("../../query_2c_1.txt");
+		  File query_file = new File("../../query_2c.txt");
 		  QueryParser q = new QueryParser(query_file);
 		  if (q.R1_hf !=null || q.R2_hf != null) {
 			  
@@ -1078,15 +1079,13 @@ public class ParserTest  implements GlobalConst {
 		    
 		  InequalityJoinTwoPredicates nlj = null;
 		    
-
-			    			    
-	    try {
-		      nlj = new InequalityJoinTwoPredicates (q.R1types,q.R1_no_flds, null,
-						  q.R2types, q.R2_no_flds, null,
-						  10,
-						  am, "R1.in","R2.in",
-						  q.Predicate, null, q.q_projection ,2);
-		    }
+			    try {
+			      nlj = new InequalityJoinTwoPredicates (q.R1types,q.R1_no_flds, null,
+							  q.R2types, q.R2_no_flds, null,
+							  10,
+							  am,"R1.in","R2.in",
+							  q.Predicate, null, q.q_projection ,2);
+			    }
 			    
 			    catch (Exception e) {
 			      System.err.println ("*** Error preparing for nested_loop_join");
@@ -1100,8 +1099,9 @@ public class ParserTest  implements GlobalConst {
 				    try {
 				      while ((t = nlj.get_next()) != null) {
 
-				        t.print(q.projectionTypes);
-//				        L_ieqjoin.add(new Row_to_compare(t.getIntFld(1),t.getIntFld(2)));
+				        //t.print(q.projectionTypes);
+				        row_count++;
+				        L_ieqjoin.add(new Row_to_compare(t.getIntFld(1), t.getIntFld(2)));
 				      }
 				      Collections.sort(L_ieqjoin, new Sortasceding());
 			    }
@@ -1115,6 +1115,9 @@ public class ParserTest  implements GlobalConst {
 		    	
 		    	if (q.R1_hf==null && q.R2_hf == null) {
 		    		
+		    		boolean done_inner = false;
+		    		boolean done_outer = false;
+		    		
 		    		String relation = q.relations.get(0);
 		    		
 		    		File rel_file = new File("../../"+relation+".txt");
@@ -1122,19 +1125,18 @@ public class ParserTest  implements GlobalConst {
 		    		try {
 	  					// new relation file reader
 	  					BufferedReader rel_reader1 = new BufferedReader(new FileReader(rel_file));
-	  					BufferedReader rel_reader2 = new BufferedReader(new FileReader(rel_file));
+	  					BufferedReader rel_reader2;
 	  					
 	  					String rec1;
 	  					String rec2;
 	  					
 	  					rec1 = rel_reader1.readLine();
-	  					rec2 = rel_reader2.readLine();
 //	  					rel_reader1.mark(0);
 //	  					rel_reader2.mark(0);
 	  					
-	  					for(int i = 0; i<400 ;i++){
+	  					for(int i = 0; i<400 && done_outer == false ;i++){
 	  						
-	  						
+	  						done_inner = false;
 	  						int R_count;
 		  					Tuple t = new Tuple();
 				  		    try {
@@ -1171,7 +1173,10 @@ public class ParserTest  implements GlobalConst {
 //				  			  		rel_reader1.reset();
 				  			  	while(R_count<5000) {
 			  			  			
-			  			  			if((rec1 = rel_reader1.readLine()) == null) break;
+			  			  			if((rec1 = rel_reader1.readLine()) == null) {
+			  			  				done_outer = true;
+			  			  				break;
+			  			  			}
 			  			  			
 			  			  			// read each field for each tuple
 			  			  			List<String> fields = Arrays.asList(rec1.split(","));		
@@ -1201,7 +1206,11 @@ public class ParserTest  implements GlobalConst {
 				  			e.printStackTrace();
 				  		      }
 	  						
-	  						for(int j = 0; j< 400; j++) {
+				  		    rel_reader2 = new BufferedReader(new FileReader(rel_file));
+
+		  					rec2 = rel_reader2.readLine();
+				  		      
+	  						for(int j = 0; j< 400 && done_inner == false; j++) {
 	  							
 				  					t = new Tuple();
 						  		    try {
@@ -1241,7 +1250,11 @@ public class ParserTest  implements GlobalConst {
 						  			  			
 	
 						  			  			
-						  			  			if((rec2 = rel_reader2.readLine()) == null) break;
+						  			  			if((rec2 = rel_reader2.readLine()) == null) 
+						  			  				{
+						  			  					done_inner = true;
+						  			  					break;
+						  			  				}
 						  			  			
 						  			  			// read each field for each tuple
 						  			  			List<String> fields = Arrays.asList(rec2.split(","));	
@@ -1288,22 +1301,13 @@ public class ParserTest  implements GlobalConst {
 				  					    
 				  					InequalityJoinTwoPredicates nlj = null;
 				  					    
-//				  						    try {
-//				  						      nlj = new SelfInequalityJoinTwoPredicate (q.R1types,q.R1_no_flds, null,
-//				  										  q.R2types, q.R2_no_flds, null,
-//				  										  10,
-//				  										  am, (q.relations.size()>1)? "R2.in" : "R1.in",
-//				  										  q.Predicate, null, q.q_projection ,2);
-//				  						    }
-				  					
-				  					
-				  				    try {
-				  				      nlj = new InequalityJoinTwoPredicates (q.R1types,q.R1_no_flds, null,
-				  								  q.R2types, q.R2_no_flds, null,
-				  								  10,
-				  								  am, "R1.in","R2.in",
-				  								  q.Predicate, null, q.q_projection ,2);
-				  				    }
+				  						    try {
+				  						      nlj = new InequalityJoinTwoPredicates (q.R1types,q.R1_no_flds, null,
+				  										  q.R2types, q.R2_no_flds, null,
+				  										  10,
+				  										  am,"R1.in","R2.in",
+				  										  q.Predicate, null, q.q_projection ,2);
+				  						    }
 				  						    
 				  						    catch (Exception e) {
 				  						      System.err.println ("*** Error preparing for nested_loop_join");
@@ -1316,8 +1320,9 @@ public class ParserTest  implements GlobalConst {
 				  						    t = null;
 				  						    try {
 				  						      while ((t = nlj.get_next()) != null) {
-				  						        t.print(q.projectionTypes);
-				  						        
+//				  						        t.print(q.projectionTypes);
+				  						        row_count++;
+				  						        L_ieqjoin.add(new Row_to_compare(t.getIntFld(1), t.getIntFld(2)));
 				  						      }
 				  						    }
 				  						    catch (Exception e) {
@@ -1326,11 +1331,13 @@ public class ParserTest  implements GlobalConst {
 				  						      Runtime.getRuntime().exit(1);
 				  						    }
 				  						    
-
+				  						    am.close();
 							  		    	q.R2_hf.deleteFile();
 	  						}
+	  						q.R1_hf.deleteFile();
 	  					}
-
+	  				System.out.println(row_count);
+	  				Collections.sort(L_ieqjoin, new Sortasceding());
 	  					
 	  				}catch(Exception e) {
 	  					System.err.println (""+e);
@@ -1343,7 +1350,8 @@ public class ParserTest  implements GlobalConst {
 	  
 	  public static void ParserTest5()
 	  {
-		  L_selfjoin_two_optimized = new ArrayList<Row_to_compare>();
+		  int row_count = 0;
+		  L_selfjoin_two_optimized= new ArrayList<Row_to_compare>();
 		  String dbpath = "/tmp/"+System.getProperty("user.name")+".minibase.jointestdb"; 
 		    String logpath = "/tmp/"+System.getProperty("user.name")+".joinlog";
 
@@ -1368,7 +1376,9 @@ public class ParserTest  implements GlobalConst {
 					      1000,500,200,"Clock");
 		    */
 
-		    SystemDefs sysdef = new SystemDefs( dbpath, 1000, NUMBUF, "Clock" );		  
+		    SystemDefs sysdef = new SystemDefs( dbpath, 1000, NUMBUF, "Clock" );
+
+		  
 		  File query_file = new File("../../query_2b.txt");
 		  QueryParser q = new QueryParser(query_file);
 		  if (q.R1_hf !=null || q.R2_hf != null) {
@@ -1390,10 +1400,10 @@ public class ParserTest  implements GlobalConst {
 		  SelfInequalityJoinTwoPredicateOptimized nlj = null;
 		    
 			    try {
-			      nlj = new SelfInequalityJoinTwoPredicateOptimized (q.R1types,q.R1_no_flds, null,
+			      nlj = new SelfInequalityJoinTwoPredicateOptimized(q.R1types,q.R1_no_flds, null,
 							  q.R2types, q.R2_no_flds, null,
 							  10,
-							  am, (q.relations.size()>1)? "R2.in" : "R1.in",
+							  am,"R2.in",
 							  q.Predicate, null, q.q_projection ,2,100);
 			    }
 			    
@@ -1408,7 +1418,9 @@ public class ParserTest  implements GlobalConst {
 				    t = null;
 				    try {
 				      while ((t = nlj.get_next()) != null) {
+
 				        //t.print(q.projectionTypes);
+				        row_count++;
 				        L_selfjoin_two_optimized.add(new Row_to_compare(t.getIntFld(1), t.getIntFld(2)));
 				      }
 				      Collections.sort(L_selfjoin_two_optimized, new Sortasceding());
@@ -1423,6 +1435,9 @@ public class ParserTest  implements GlobalConst {
 		    	
 		    	if (q.R1_hf==null && q.R2_hf == null) {
 		    		
+		    		boolean done_inner = false;
+		    		boolean done_outer = false;
+		    		
 		    		String relation = q.relations.get(0);
 		    		
 		    		File rel_file = new File("../../"+relation+".txt");
@@ -1430,19 +1445,18 @@ public class ParserTest  implements GlobalConst {
 		    		try {
 	  					// new relation file reader
 	  					BufferedReader rel_reader1 = new BufferedReader(new FileReader(rel_file));
-	  					BufferedReader rel_reader2 = new BufferedReader(new FileReader(rel_file));
+	  					BufferedReader rel_reader2;
 	  					
 	  					String rec1;
 	  					String rec2;
 	  					
 	  					rec1 = rel_reader1.readLine();
-	  					rec2 = rel_reader2.readLine();
-	  					rel_reader1.mark(0);
-	  					rel_reader2.mark(0);
+//	  					rel_reader1.mark(0);
+//	  					rel_reader2.mark(0);
 	  					
-	  					for(int i = 0; i<400 ;i++){
+	  					for(int i = 0; i<400 && done_outer == false ;i++){
 	  						
-	  						
+	  						done_inner = false;
 	  						int R_count;
 		  					Tuple t = new Tuple();
 				  		    try {
@@ -1476,15 +1490,21 @@ public class ParserTest  implements GlobalConst {
 				  		    
 				  		      try {
 				  			  		R_count = 0;
-				  			  		rel_reader1.reset();
-				  			  		while((rec1 = rel_reader1.readLine()) != null && R_count<5000) {
-				  			  			
-				  			  			// read each field for each tuple
-				  			  			List<String> fields = Arrays.asList(rec1.split(","));		  		
-				  			  			t.setIntFld(1, Integer.parseInt(fields.get(0)));
-				  				  		t.setIntFld(2, Integer.parseInt(fields.get(1)));
-				  				  		t.setIntFld(3, Integer.parseInt(fields.get(2)));
-				  				  		t.setIntFld(4, Integer.parseInt(fields.get(3)));
+//				  			  		rel_reader1.reset();
+				  			  	while(R_count<5000) {
+			  			  			
+			  			  			if((rec1 = rel_reader1.readLine()) == null) {
+			  			  				done_outer = true;
+			  			  				break;
+			  			  			}
+			  			  			
+			  			  			// read each field for each tuple
+			  			  			List<String> fields = Arrays.asList(rec1.split(","));		
+			  			  			
+			  			  			for(int k=0;k<q.R1_no_flds;k++) {
+			  			  			t.setIntFld(k+1, Integer.parseInt(fields.get(k)));
+			  			  			
+			  			  			}
 				  				  		
 				  				        try {
 				  				        	// insert the tuple into the heap file
@@ -1498,7 +1518,7 @@ public class ParserTest  implements GlobalConst {
 				  				              }  
 				  			  		}
 				  			  		
-				  			  	rel_reader1.mark(0);
+//				  			  	rel_reader1.mark(0);
 				  		  		
 				  		      }
 				  		      catch (Exception e) {
@@ -1506,7 +1526,11 @@ public class ParserTest  implements GlobalConst {
 				  			e.printStackTrace();
 				  		      }
 	  						
-	  						for(int j = 0; j< 400; j++) {
+				  		    rel_reader2 = new BufferedReader(new FileReader(rel_file));
+
+		  					rec2 = rel_reader2.readLine();
+				  		      
+	  						for(int j = 0; j< 400 && done_inner == false; j++) {
 	  							
 				  					t = new Tuple();
 						  		    try {
@@ -1541,15 +1565,25 @@ public class ParserTest  implements GlobalConst {
 			
 						  		      try {
 						  			  		R_count = 0;
-						  			  		rel_reader2.reset();
-						  			  		while((rec2 = rel_reader2.readLine()) != null && R_count<5000) {
+//						  			  		rel_reader2.reset();
+							  			  	while(R_count<5000) {
+						  			  			
+	
+						  			  			
+						  			  			if((rec2 = rel_reader2.readLine()) == null) 
+						  			  				{
+						  			  					done_inner = true;
+						  			  					break;
+						  			  				}
 						  			  			
 						  			  			// read each field for each tuple
-						  			  			List<String> fields = Arrays.asList(rec2.split(","));		  		
-						  			  			t.setIntFld(1, Integer.parseInt(fields.get(0)));
-						  				  		t.setIntFld(2, Integer.parseInt(fields.get(1)));
-						  				  		t.setIntFld(3, Integer.parseInt(fields.get(2)));
-						  				  		t.setIntFld(4, Integer.parseInt(fields.get(3)));
+						  			  			List<String> fields = Arrays.asList(rec2.split(","));	
+						  			  			
+						  			  			for(int k=0; k<q.R2_no_flds;k++) {
+						  			  			
+						  			  			t.setIntFld(k+1, Integer.parseInt(fields.get(k)));
+						  			  			
+						  			  			}
 						  				  		
 						  				        try {
 						  				        	// insert the tuple into the heap file
@@ -1563,7 +1597,7 @@ public class ParserTest  implements GlobalConst {
 						  				              }  
 						  			  		}
 						  			  		
-						  			  	rel_reader2.mark(0);
+//						  			  	rel_reader2.mark(0);
 						  		  		
 						  		      }
 						  		      catch (Exception e) {
@@ -1591,7 +1625,7 @@ public class ParserTest  implements GlobalConst {
 				  						      nlj = new SelfInequalityJoinTwoPredicateOptimized (q.R1types,q.R1_no_flds, null,
 				  										  q.R2types, q.R2_no_flds, null,
 				  										  10,
-				  										  am, (q.relations.size()>1)? "R2.in" : "R1.in",
+				  										  am,"R2.in",
 				  										  q.Predicate, null, q.q_projection ,2,10);
 				  						    }
 				  						    
@@ -1606,7 +1640,9 @@ public class ParserTest  implements GlobalConst {
 				  						    t = null;
 				  						    try {
 				  						      while ((t = nlj.get_next()) != null) {
-				  						        t.print(q.projectionTypes);
+//				  						        t.print(q.projectionTypes);
+				  						        row_count++;
+				  						        L_selfjoin_two_optimized.add(new Row_to_compare(t.getIntFld(1), t.getIntFld(2)));
 				  						      }
 				  						    }
 				  						    catch (Exception e) {
@@ -1615,11 +1651,13 @@ public class ParserTest  implements GlobalConst {
 				  						      Runtime.getRuntime().exit(1);
 				  						    }
 				  						    
-
+				  						    am.close();
 							  		    	q.R2_hf.deleteFile();
 	  						}
+	  						q.R1_hf.deleteFile();
 	  					}
-
+	  				System.out.println(row_count);
+	  				Collections.sort(L_selfjoin_two_optimized, new Sortasceding());
 	  					
 	  				}catch(Exception e) {
 	  					System.err.println (""+e);
@@ -1635,36 +1673,14 @@ public class ParserTest  implements GlobalConst {
 		  
 		  int i=0;
 		  boolean results_same = true;
-		  boolean exists = false;
-		  //if (L1.size()==L2.size()) {
-		  if (true) {
+		  if (L1.size()==L2.size()) {
 			  System.out.println("Both arrays are of same size");
 		  
 		  
 		  for (i=0;i<L2.size();i++) {
-			  if(L2.get(i).fld1==L2.get(i).fld1 &&
-					  L1.get(i).fld2==L2.get(i).fld2){
+			  if(L2.get(i).fld1==L2.get(i).fld1 &&L1.get(i).fld2==L2.get(i).fld2) {
 				  results_same = true;
 						  }
-			  else {
-				  results_same = false;
-				  for(int k=0;k<L1.size();k++) {
-					  if (L1.get(k).equals(L2.get(i))) {
-						  exists=true;
-						  break; 
-
-					  }
-				  }
-				  
-				  if(!exists) {
-					  System.out.println("The results are different at index i "+i);
-					  System.out.print("[ "+L2.get(i).fld1+ ", "+L2.get(i).fld2+" ]\n");
-					  System.out.print("[ "+L1.get(i).fld1+ ", "+L1.get(i).fld2+" ]\n");
-					  break;
-				  }
-
-				  //break;
-				  }
 			  }
 		  }
 		  else {
@@ -1683,6 +1699,7 @@ public class ParserTest  implements GlobalConst {
 	  
 	  public static void ParserTest6()
 	  {
+		  int row_count = 0;
 		  L_ieqjoin_optimized = new ArrayList<Row_to_compare>();
 		  String dbpath = "/tmp/"+System.getProperty("user.name")+".minibase.jointestdb"; 
 		    String logpath = "/tmp/"+System.getProperty("user.name")+".joinlog";
@@ -1711,7 +1728,7 @@ public class ParserTest  implements GlobalConst {
 		    SystemDefs sysdef = new SystemDefs( dbpath, 1000, NUMBUF, "Clock" );
 
 		  
-		  File query_file = new File("../../query_2c_1.txt");
+		  File query_file = new File("../../query_2c.txt");
 		  QueryParser q = new QueryParser(query_file);
 		  if (q.R1_hf !=null || q.R2_hf != null) {
 			  
@@ -1731,23 +1748,13 @@ public class ParserTest  implements GlobalConst {
 		    
 		  InequalityJoinTwoPredicatesOptimized nlj = null;
 		    
-//			    try {
-//			      nlj = new SelfInequalityJoinTwoPredicate (q.R1types,q.R1_no_flds, null,
-//							  q.R2types, q.R2_no_flds, null,
-//							  10,
-//							  am, (q.relations.size()>1)? "R2.in" : "R1.in",
-//							  q.Predicate, null, q.q_projection ,2);
-//			    }
-			    
-			    
-			    
 			    try {
-				      nlj = new InequalityJoinTwoPredicatesOptimized (q.R1types,q.R1_no_flds, null,
-								  q.R2types, q.R2_no_flds, null,
-								  10,
-								  am, "R1.in","R2.in",
-								  q.Predicate, null, q.q_projection ,2,10);
-				    }
+			      nlj = new InequalityJoinTwoPredicatesOptimized (q.R1types,q.R1_no_flds, null,
+							  q.R2types, q.R2_no_flds, null,
+							  10,
+							  am,"R1.in","R2.in",
+							  q.Predicate, null, q.q_projection ,2,100);
+			    }
 			    
 			    catch (Exception e) {
 			      System.err.println ("*** Error preparing for nested_loop_join");
@@ -1760,8 +1767,10 @@ public class ParserTest  implements GlobalConst {
 				    t = null;
 				    try {
 				      while ((t = nlj.get_next()) != null) {
+
 				        //t.print(q.projectionTypes);
-				        L_ieqjoin_optimized.add(new Row_to_compare(t.getIntFld(1),t.getIntFld(2)));
+				        row_count++;
+				        L_ieqjoin_optimized.add(new Row_to_compare(t.getIntFld(1), t.getIntFld(2)));
 				      }
 				      Collections.sort(L_ieqjoin_optimized, new Sortasceding());
 			    }
@@ -1775,6 +1784,9 @@ public class ParserTest  implements GlobalConst {
 		    	
 		    	if (q.R1_hf==null && q.R2_hf == null) {
 		    		
+		    		boolean done_inner = false;
+		    		boolean done_outer = false;
+		    		
 		    		String relation = q.relations.get(0);
 		    		
 		    		File rel_file = new File("../../"+relation+".txt");
@@ -1782,19 +1794,18 @@ public class ParserTest  implements GlobalConst {
 		    		try {
 	  					// new relation file reader
 	  					BufferedReader rel_reader1 = new BufferedReader(new FileReader(rel_file));
-	  					BufferedReader rel_reader2 = new BufferedReader(new FileReader(rel_file));
+	  					BufferedReader rel_reader2;
 	  					
 	  					String rec1;
 	  					String rec2;
 	  					
 	  					rec1 = rel_reader1.readLine();
-	  					rec2 = rel_reader2.readLine();
-	  					rel_reader1.mark(0);
-	  					rel_reader2.mark(0);
+//	  					rel_reader1.mark(0);
+//	  					rel_reader2.mark(0);
 	  					
-	  					for(int i = 0; i<400 ;i++){
+	  					for(int i = 0; i<400 && done_outer == false ;i++){
 	  						
-	  						
+	  						done_inner = false;
 	  						int R_count;
 		  					Tuple t = new Tuple();
 				  		    try {
@@ -1828,15 +1839,21 @@ public class ParserTest  implements GlobalConst {
 				  		    
 				  		      try {
 				  			  		R_count = 0;
-				  			  		rel_reader1.reset();
-				  			  		while((rec1 = rel_reader1.readLine()) != null && R_count<5000) {
-				  			  			
-				  			  			// read each field for each tuple
-				  			  			List<String> fields = Arrays.asList(rec1.split(","));		  		
-				  			  			t.setIntFld(1, Integer.parseInt(fields.get(0)));
-				  				  		t.setIntFld(2, Integer.parseInt(fields.get(1)));
-				  				  		t.setIntFld(3, Integer.parseInt(fields.get(2)));
-				  				  		t.setIntFld(4, Integer.parseInt(fields.get(3)));
+//				  			  		rel_reader1.reset();
+				  			  	while(R_count<5000) {
+			  			  			
+			  			  			if((rec1 = rel_reader1.readLine()) == null) {
+			  			  				done_outer = true;
+			  			  				break;
+			  			  			}
+			  			  			
+			  			  			// read each field for each tuple
+			  			  			List<String> fields = Arrays.asList(rec1.split(","));		
+			  			  			
+			  			  			for(int k=0;k<q.R1_no_flds;k++) {
+			  			  			t.setIntFld(k+1, Integer.parseInt(fields.get(k)));
+			  			  			
+			  			  			}
 				  				  		
 				  				        try {
 				  				        	// insert the tuple into the heap file
@@ -1850,7 +1867,7 @@ public class ParserTest  implements GlobalConst {
 				  				              }  
 				  			  		}
 				  			  		
-				  			  	rel_reader1.mark(0);
+//				  			  	rel_reader1.mark(0);
 				  		  		
 				  		      }
 				  		      catch (Exception e) {
@@ -1858,7 +1875,11 @@ public class ParserTest  implements GlobalConst {
 				  			e.printStackTrace();
 				  		      }
 	  						
-	  						for(int j = 0; j< 400; j++) {
+				  		    rel_reader2 = new BufferedReader(new FileReader(rel_file));
+
+		  					rec2 = rel_reader2.readLine();
+				  		      
+	  						for(int j = 0; j< 400 && done_inner == false; j++) {
 	  							
 				  					t = new Tuple();
 						  		    try {
@@ -1893,15 +1914,25 @@ public class ParserTest  implements GlobalConst {
 			
 						  		      try {
 						  			  		R_count = 0;
-						  			  		rel_reader2.reset();
-						  			  		while((rec2 = rel_reader2.readLine()) != null && R_count<5000) {
+//						  			  		rel_reader2.reset();
+							  			  	while(R_count<5000) {
+						  			  			
+	
+						  			  			
+						  			  			if((rec2 = rel_reader2.readLine()) == null) 
+						  			  				{
+						  			  					done_inner = true;
+						  			  					break;
+						  			  				}
 						  			  			
 						  			  			// read each field for each tuple
-						  			  			List<String> fields = Arrays.asList(rec2.split(","));		  		
-						  			  			t.setIntFld(1, Integer.parseInt(fields.get(0)));
-						  				  		t.setIntFld(2, Integer.parseInt(fields.get(1)));
-						  				  		t.setIntFld(3, Integer.parseInt(fields.get(2)));
-						  				  		t.setIntFld(4, Integer.parseInt(fields.get(3)));
+						  			  			List<String> fields = Arrays.asList(rec2.split(","));	
+						  			  			
+						  			  			for(int k=0; k<q.R2_no_flds;k++) {
+						  			  			
+						  			  			t.setIntFld(k+1, Integer.parseInt(fields.get(k)));
+						  			  			
+						  			  			}
 						  				  		
 						  				        try {
 						  				        	// insert the tuple into the heap file
@@ -1915,7 +1946,7 @@ public class ParserTest  implements GlobalConst {
 						  				              }  
 						  			  		}
 						  			  		
-						  			  	rel_reader2.mark(0);
+//						  			  	rel_reader2.mark(0);
 						  		  		
 						  		      }
 						  		      catch (Exception e) {
@@ -1939,22 +1970,13 @@ public class ParserTest  implements GlobalConst {
 				  					    
 				  					InequalityJoinTwoPredicatesOptimized nlj = null;
 				  					    
-//				  						    try {
-//				  						      nlj = new SelfInequalityJoinTwoPredicate (q.R1types,q.R1_no_flds, null,
-//				  										  q.R2types, q.R2_no_flds, null,
-//				  										  10,
-//				  										  am, (q.relations.size()>1)? "R2.in" : "R1.in",
-//				  										  q.Predicate, null, q.q_projection ,2);
-//				  						    }
-				  					
-				  					
-				  				    try {
-				  				      nlj = new InequalityJoinTwoPredicatesOptimized (q.R1types,q.R1_no_flds, null,
-				  								  q.R2types, q.R2_no_flds, null,
-				  								  10,
-				  								  am, "R1.in","R2.in",
-				  								  q.Predicate, null, q.q_projection ,2,10);
-				  				    }
+				  						    try {
+				  						      nlj = new InequalityJoinTwoPredicatesOptimized(q.R1types,q.R1_no_flds, null,
+				  										  q.R2types, q.R2_no_flds, null,
+				  										  10,
+				  										  am,"R1.in","R2.in",
+				  										  q.Predicate, null, q.q_projection ,2,10);
+				  						    }
 				  						    
 				  						    catch (Exception e) {
 				  						      System.err.println ("*** Error preparing for nested_loop_join");
@@ -1967,8 +1989,9 @@ public class ParserTest  implements GlobalConst {
 				  						    t = null;
 				  						    try {
 				  						      while ((t = nlj.get_next()) != null) {
-				  						        t.print(q.projectionTypes);
-				  						        
+//				  						        t.print(q.projectionTypes);
+				  						        row_count++;
+				  						        L_ieqjoin_optimized.add(new Row_to_compare(t.getIntFld(1), t.getIntFld(2)));
 				  						      }
 				  						    }
 				  						    catch (Exception e) {
@@ -1977,11 +2000,13 @@ public class ParserTest  implements GlobalConst {
 				  						      Runtime.getRuntime().exit(1);
 				  						    }
 				  						    
-
+				  						    am.close();
 							  		    	q.R2_hf.deleteFile();
 	  						}
+	  						q.R1_hf.deleteFile();
 	  					}
-
+	  				System.out.println(row_count);
+	  				Collections.sort(L_ieqjoin_optimized, new Sortasceding());
 	  					
 	  				}catch(Exception e) {
 	  					System.err.println (""+e);
@@ -1996,18 +2021,19 @@ public class ParserTest  implements GlobalConst {
 	  public static void main(String argv[])
 	  {
 		  long start = System.currentTimeMillis();
-		  ParserTest test = new ParserTest("../../query_2a.txt");
+		  //ParserTest test = new ParserTest("../../query_2b.txt");
+		  ParserTest4();
 	      long end = System.currentTimeMillis(); 
 		  
 	      System.out.println("NLJ takes " + 
                   (end - start) + "ms"); 
 	      start = System.currentTimeMillis();
-		  ParserTest2();
+		  ParserTest6();
 		  end = System.currentTimeMillis(); 
 		  System.out.println("IESelfJoin takes " + 
                   (end - start) + "ms");
 		  
 
-		  //compare_2_arrays(L_nlj,L_selfjoin_one);
+		  compare_2_arrays(L_ieqjoin,L_ieqjoin_optimized);
 		  }
 }

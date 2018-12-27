@@ -39,7 +39,7 @@ public class SelfInequalityJoinTwoPredicateOptimized  extends Iterator
   private int number_of_rows;
   private   Heapfile  hf;
   private   Scan      inner;
-  private int permutation_array[];
+  private int permutation_array[],permutation_array_1_to_2[];
   int pos;
 
 
@@ -59,7 +59,7 @@ public class SelfInequalityJoinTwoPredicateOptimized  extends Iterator
    *@param rightFilter reference to filter applied on right i/p
    *@param proj_list shows what input fields go where in the output tuple
    *@param n_out_flds number of outer relation fields
-   *@param size_of_chuncks number of the bitmap
+   *@param size_of_chuncks number of the bitmap fields
    *@exception IOException some I/O fault
    *@exception NestedLoopException exception from this class
    */
@@ -209,12 +209,20 @@ public class SelfInequalityJoinTwoPredicateOptimized  extends Iterator
 	      
 	      // initialize permutation array
 	      permutation_array = new int[number_of_rows]; 
-	      
+	      permutation_array_1_to_2 = new int[number_of_rows];
 	      
 	      for (i=0; i<number_of_rows; i++)
 	    	  for (int j=0;j<number_of_rows;j++) {
 	    		  if (L2.get(i).equals(L1.get(j))){
 	    			  permutation_array[i]=j;
+	    			  break;
+	    		  }
+	    	  }
+	      
+	      for (i=0; i<number_of_rows; i++)
+	    	  for (int j=0;j<number_of_rows;j++) {
+	    		  if (L1.get(i).equals(L2.get(j))){
+	    			  permutation_array_1_to_2[i]=j;
 	    			  break;
 	    		  }
 	    	  }
@@ -277,6 +285,7 @@ public class SelfInequalityJoinTwoPredicateOptimized  extends Iterator
     {
     
 	  int max_tmp; // variable used to store a temporary value of the potential the next value of maxIndex
+	  int outer_tuple_fld1,outer_tuple_fld2,inner_tuple_fld1,inner_tuple_fld2;
 	  
       while(outer_index<number_of_rows) {
     	  
@@ -317,10 +326,20 @@ public class SelfInequalityJoinTwoPredicateOptimized  extends Iterator
     		  if(BitArray.get(inner_index)) {
     			  outer_tuple = L1.get(inner_index).field_to_select;
     			  inner_tuple = L1.get(pos).field_to_select;
-    			  Projection.Join(outer_tuple, _in1,inner_tuple, _in2, 
-    					  Jtuple, perm_mat, nOutFlds);
-    			  inner_index++;
-    			  return Jtuple;
+    			  
+    			  outer_tuple_fld1 = L1.get(inner_index).field_to_sort; 
+    			  outer_tuple_fld2 = L2.get(permutation_array_1_to_2[inner_index]).field_to_sort;
+    			  inner_tuple_fld1= L1.get(pos).field_to_sort;
+    			  inner_tuple_fld2 = L2.get(permutation_array_1_to_2[pos]).field_to_sort;
+    			  if(SelfJoinOnePredicate.predicate_evaluate(
+    					  outer_tuple_fld1, inner_tuple_fld1, OutputFilter[0].op.attrOperator) &&
+    					  SelfJoinOnePredicate.predicate_evaluate(
+    	    					  outer_tuple_fld2, inner_tuple_fld2, OutputFilter[1].op.attrOperator)) {
+    				  Projection.Join(outer_tuple, _in1,inner_tuple, _in2, 
+	    					  Jtuple, perm_mat, nOutFlds);
+	    			  inner_index++;
+	    			  return Jtuple;
+    			  }
     		  }
     		  inner_index++;
     	  }
