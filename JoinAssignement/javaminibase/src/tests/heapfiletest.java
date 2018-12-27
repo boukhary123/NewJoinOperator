@@ -51,11 +51,18 @@ public class heapfiletest implements GlobalConst {
 		int row_count = 0;
 		
 		FileScan am = null;
+		Scan      inner;
+		Heapfile  hf;
+		RID rid = new RID();
+
 		try {
 		      
 			am = new FileScan("R.in",
 					   q.R1types, null, (short) q.R1_no_flds, q.R1_no_flds,
 					   q.R1_projection,null);
+//			hf = new Heapfile("R.in");
+//			inner = hf.openScan();
+			
 			
 		    }
 		    
@@ -74,9 +81,9 @@ public class heapfiletest implements GlobalConst {
 			if(!am.getNextHeapFile(q.R2_no_flds, q.R2types,"R.in")) {
 				try {
 				      
-					am = new FileScan("R.in",
-							   q.R1types, null, (short) q.R1_no_flds, q.R1_no_flds,
-							   q.R1_projection,null);
+//					am = new FileScan("R.in",
+//							   q.R1types, null, (short) q.R1_no_flds, q.R1_no_flds,
+//							   q.R1_projection,null);
 					
 				    }
 				    
@@ -88,9 +95,13 @@ public class heapfiletest implements GlobalConst {
 				    
 					    Tuple t = new Tuple();
 					    t = null;
+						hf = new Heapfile("R.in");
+						inner = hf.openScan();
+
 					    try {
-					      while ((t = am.get_next()) != null) {
-//					    	  t.print(q.R1types);
+						while ((t = inner.getNext(rid)) != null) {
+							t.setHdr((short)q.R1_no_flds, q.R1types,null);
+							t.print(q.R1types);
 					    	  
 					    	  row_count++;
 					      }
@@ -107,9 +118,9 @@ public class heapfiletest implements GlobalConst {
 			}else {
 				try {
 				      
-					am = new FileScan("R.in",
-							   q.R1types, null, (short) q.R1_no_flds, q.R1_no_flds,
-							   q.R1_projection,null);
+//					am = new FileScan("R.in",
+//							   q.R1types, null, (short) q.R1_no_flds, q.R1_no_flds,
+//							   q.R1_projection,null);
 					
 				    }
 				    
@@ -121,9 +132,11 @@ public class heapfiletest implements GlobalConst {
 				    
 					    Tuple t = new Tuple();
 					    t = null;
+						hf = new Heapfile("R.in");
+						inner = hf.openScan();
 					    try {
-					      while ((t = am.get_next()) != null) {
-//					    	  t.print(q.R1types);
+					      while ((t = inner.getNext(rid)) != null) {
+					    	  t.print(q.R1types);
 					    	  
 					    	  row_count++;
 					      }

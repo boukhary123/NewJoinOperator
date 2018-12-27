@@ -53,6 +53,7 @@ public class SelfJoinOnePredicate  extends Iterator
    *@param rightFilter reference to filter applied on right i/p
    *@param proj_list shows what input fields go where in the output tuple
    *@param n_out_flds number of outer relation fields
+   *@param file_path path of the text file containing the records
    *@exception IOException some I/O fault
    *@exception NestedLoopException exception from this class
    */
@@ -68,7 +69,8 @@ public class SelfJoinOnePredicate  extends Iterator
 			   CondExpr outFilter[],      
 			   CondExpr rightFilter[],    
 			   FldSpec   proj_list[],
-			   int        n_out_flds
+			   int        n_out_flds,
+			   String file_path
 			   ) throws IOException,NestedLoopException
     {
 	  
@@ -114,6 +116,9 @@ public class SelfJoinOnePredicate  extends Iterator
       outer_index = 0;
       inner_index = 0;
       
+      // set up the reader that will read the records from the text file
+      this.firstHeapFileCall = true;
+      this.reader = new BufferedReader(new FileReader(file_path));
                 
       // check how we should sort the L1 array (the heap file)
       if (outFilter[0].op.attrOperator  == AttrOperator.aopGT ||
@@ -142,10 +147,10 @@ public class SelfJoinOnePredicate  extends Iterator
 		  L1 = new ArrayList<RowWithTuple>();
 		  
 		  // heap file containing the relations
-		  hf = new Heapfile(relationName);
+		  //hf = new Heapfile(relationName);
 		  
 		  // scan iterator to read elements from heap file 
-		  inner = hf.openScan();
+		  //inner = hf.openScan();
 		  
 		  // this variable is used to keep track of the record id of the current tuple
 	      RID rid = new RID();
@@ -160,24 +165,101 @@ public class SelfJoinOnePredicate  extends Iterator
 	      perm = new FldSpec[1];
 	      perm[0]=perm_mat[0];
  
-	      // read tuples from the heap file and fill the L1 array
-	      while ((inner_tuple = inner.getNext(rid)) != null) {
-	    	  // set the header of the read tuple
-			  inner_tuple.setHdr((short)in1_len, _in1,t1_str_sizes);
-			  
-			  // set the field to be sorted
-			  field_to_sort=inner_tuple.getIntFld(outFilter[0].operand1.symbol.offset);
-			  
-			  // project the tuple on the field to be selected finally
-			  Projection.Project(inner_tuple, _in1, Jtuple, perm,1);
-			  
-			  // add element to L1 array
-	    	  L1.add(new RowWithTuple(rid, field_to_sort,Jtuple));
-			  	    	  
-	    	  // keep track of the number of rows
-	    	  i+=1;
-	    	  
-	      }
+	      
+	      
+			while(true)
+			{
+				if(!this.getNextHeapFile(len_in1, _in1,relationName)) {
+					
+					hf = new Heapfile(relationName);
+					inner = hf.openScan();
+
+				    try {
+					      // read tuples from the heap file and fill the L1 array
+					      while ((inner_tuple = inner.getNext(rid)) != null) {
+					    	  // set the header of the read tuple
+							  inner_tuple.setHdr((short)in1_len, _in1,t1_str_sizes);
+							  
+							  // set the field to be sorted
+							  field_to_sort=inner_tuple.getIntFld(outFilter[0].operand1.symbol.offset);
+							  
+							  // project the tuple on the field to be selected finally
+							  Projection.Project(inner_tuple, _in1, Jtuple, perm,1);
+							  
+							  // add element to L1 array
+					    	  L1.add(new RowWithTuple(rid, field_to_sort,Jtuple));
+							  	    	  
+					    	  // keep track of the number of rows
+					    	  i+=1;
+					    	  
+					      }
+
+				    }
+				    catch (Exception e) {
+				      System.err.println (""+e);
+				      e.printStackTrace();
+				      Runtime.getRuntime().exit(1);
+				    }
+				    
+				    Heapfile F = new Heapfile(relationName);
+				    F.deleteFile();
+				}else {
+
+				    Tuple t = new Tuple();
+				    t = null;
+					hf = new Heapfile(relationName);
+					inner = hf.openScan();
+				    try {
+					      // read tuples from the heap file and fill the L1 array
+					      while ((inner_tuple = inner.getNext(rid)) != null) {
+					    	  // set the header of the read tuple
+							  inner_tuple.setHdr((short)in1_len, _in1,t1_str_sizes);
+							  
+							  // set the field to be sorted
+							  field_to_sort=inner_tuple.getIntFld(outFilter[0].operand1.symbol.offset);
+							  
+							  // project the tuple on the field to be selected finally
+							  Projection.Project(inner_tuple, _in1, Jtuple, perm,1);
+							  
+							  // add element to L1 array
+					    	  L1.add(new RowWithTuple(rid, field_to_sort,Jtuple));
+							  	    	  
+					    	  // keep track of the number of rows
+					    	  i+=1;
+					    	  
+					      }
+
+				    }
+				    catch (Exception e) {
+				      System.err.println (""+e);
+				      e.printStackTrace();
+				      Runtime.getRuntime().exit(1);
+				    }
+				    
+				    Heapfile F = new Heapfile("R.in");
+				    F.deleteFile();
+				    break;
+				    }
+				}
+	      
+//	      // read tuples from the heap file and fill the L1 array
+//	      while ((inner_tuple = inner.getNext(rid)) != null) {
+//	    	  // set the header of the read tuple
+//			  inner_tuple.setHdr((short)in1_len, _in1,t1_str_sizes);
+//			  
+//			  // set the field to be sorted
+//			  field_to_sort=inner_tuple.getIntFld(outFilter[0].operand1.symbol.offset);
+//			  
+//			  // project the tuple on the field to be selected finally
+//			  Projection.Project(inner_tuple, _in1, Jtuple, perm,1);
+//			  
+//			  // add element to L1 array
+//	    	  L1.add(new RowWithTuple(rid, field_to_sort,Jtuple));
+//			  	    	  
+//	    	  // keep track of the number of rows
+//	    	  i+=1;
+//	    	  
+//	      }
 	      
 			 
 		 // get the number of rows
