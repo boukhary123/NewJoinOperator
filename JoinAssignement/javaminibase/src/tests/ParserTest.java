@@ -125,7 +125,7 @@ public class ParserTest  implements GlobalConst {
 			      while ((t = nlj.get_next()) != null) {
 			        //t.print(q.projectionTypes);
 			        row_count++;
-//			        L_nlj.add(new Row_to_compare(t.getIntFld(1),t.getIntFld(2)));
+			        L_nlj.add(new Row_to_compare(t.getIntFld(1),t.getIntFld(2)));
 			      }
 			      Collections.sort(L_nlj,new Sortasceding());
 			    }
@@ -382,6 +382,9 @@ public class ParserTest  implements GlobalConst {
 	  public static void ParserTest2()
 	  {
 		  L_selfjoin_one = new ArrayList<Row_to_compare>();
+
+		  int row_count = 0;
+		  L_nlj = new ArrayList<Row_to_compare>();
 		  String dbpath = "/tmp/"+System.getProperty("user.name")+".minibase.jointestdb"; 
 		    String logpath = "/tmp/"+System.getProperty("user.name")+".joinlog";
 
@@ -427,7 +430,7 @@ public class ParserTest  implements GlobalConst {
 		    }
 		    
 		    
-		  SelfJoinOnePredicate nlj = null;
+		    SelfJoinOnePredicate nlj = null;
 		    
 			    try {
 			      nlj = new SelfJoinOnePredicate (q.R1types,q.R1_no_flds, null,
@@ -448,10 +451,11 @@ public class ParserTest  implements GlobalConst {
 			    t = null;
 			    try {
 			      while ((t = nlj.get_next()) != null) {
-			        t.print(q.projectionTypes);
+			        //t.print(q.projectionTypes);
+			        row_count++;
 			        L_selfjoin_one.add(new Row_to_compare(t.getIntFld(1),t.getIntFld(2)));
 			      }
-			      Collections.sort(L_selfjoin_one, new Sortasceding());
+			      Collections.sort(L_selfjoin_one,new Sortasceding());
 			    }
 			    catch (Exception e) {
 			      System.err.println (""+e);
@@ -462,6 +466,9 @@ public class ParserTest  implements GlobalConst {
 		    else {
 		    	
 		    	if (q.R1_hf==null && q.R2_hf == null) {
+		    		
+		    		boolean done_inner = false;
+		    		boolean done_outer = false;
 		    		
 		    		String relation = q.relations.get(0);
 		    		
@@ -479,9 +486,10 @@ public class ParserTest  implements GlobalConst {
 //	  					rel_reader1.mark(0);
 //	  					rel_reader2.mark(0);
 	  					
-	  					for(int i = 0; i<400 ;i++){
+	  					
+	  					for(int i = 0; i<400 && done_outer == false ;i++){
 	  						
-	  						
+	  						done_inner = false;
 	  						int R_count;
 		  					Tuple t = new Tuple();
 				  		    try {
@@ -518,7 +526,10 @@ public class ParserTest  implements GlobalConst {
 //				  			  		rel_reader1.reset();
 				  			  	while(R_count<5000) {
 			  			  			
-			  			  			if((rec1 = rel_reader1.readLine()) == null) break;
+			  			  			if((rec1 = rel_reader1.readLine()) == null) {
+			  			  				done_outer = true;
+			  			  				break;
+			  			  			}
 			  			  			
 			  			  			// read each field for each tuple
 			  			  			List<String> fields = Arrays.asList(rec1.split(","));		
@@ -550,9 +561,9 @@ public class ParserTest  implements GlobalConst {
 	  						
 				  		    rel_reader2 = new BufferedReader(new FileReader(rel_file));
 		  					rec2 = rel_reader2.readLine();
-				  		      
-	  						for(int j = 0; j< 400; j++) {
-	  							
+		  					
+	  						for(int j = 0; j< 400 && done_inner == false; j++) {
+	  								
 				  					t = new Tuple();
 						  		    try {
 						  		      t.setHdr((short) q.R2_no_flds,q.R2types, null);
@@ -591,7 +602,11 @@ public class ParserTest  implements GlobalConst {
 						  			  			
 	
 						  			  			
-						  			  			if((rec2 = rel_reader2.readLine()) == null) break;
+						  			  			if((rec2 = rel_reader2.readLine()) == null) 
+						  			  				{
+						  			  					done_inner = true;
+						  			  					break;
+						  			  				}
 						  			  			
 						  			  			// read each field for each tuple
 						  			  			List<String> fields = Arrays.asList(rec2.split(","));	
@@ -636,13 +651,13 @@ public class ParserTest  implements GlobalConst {
 				  					    }
 				  					    
 				  					    
-				  					SelfJoinOnePredicate nlj = null;
+				  					    SelfJoinOnePredicate nlj = null;
 				  					    
 				  						    try {
 				  						      nlj = new SelfJoinOnePredicate (q.R1types,q.R1_no_flds, null,
 				  										  q.R2types, q.R2_no_flds, null,
 				  										  10,
-				  										  am, "R2.in",
+				  										  am,"R2.in",
 				  										  q.Predicate, null, q.q_projection ,2);
 				  						    }
 				  						    
@@ -657,10 +672,12 @@ public class ParserTest  implements GlobalConst {
 				  						    t = null;
 				  						    try {
 				  						      while ((t = nlj.get_next()) != null) {
-//				  						        t.print(q.projectionTypes);
-//				  						        L_selfjoin_one.add(new Row_to_compare(t.getIntFld(1),t.getIntFld(2)));
+//				  						    	  t.print(q.projectionTypes);
+				  						    	  row_count++;
+				  						        L_selfjoin_one.add(new Row_to_compare(t.getIntFld(1),t.getIntFld(2)));
 
 				  						      }
+				  			
 				  						    }
 				  						    catch (Exception e) {
 				  						      System.err.println (""+e);
@@ -668,14 +685,17 @@ public class ParserTest  implements GlobalConst {
 				  						      Runtime.getRuntime().exit(1);
 				  						    }
 				  						    
-
+				  						    am.close();
+				  						    nlj.close();
 							  		    	q.R2_hf.deleteFile();
 	  						}
 	  						
 	  						q.R1_hf.deleteFile();
 	  					}
-
 	  					
+	  				System.out.println(row_count);
+	  				Collections.sort(L_selfjoin_one,new Sortasceding());
+
 	  					
 	  				}catch(Exception e) {
 	  					System.err.println (""+e);
@@ -1976,18 +1996,18 @@ public class ParserTest  implements GlobalConst {
 	  public static void main(String argv[])
 	  {
 		  long start = System.currentTimeMillis();
-		  ParserTest test = new ParserTest("../../query_2b.txt");
+		  ParserTest test = new ParserTest("../../query_2a.txt");
 	      long end = System.currentTimeMillis(); 
 		  
 	      System.out.println("NLJ takes " + 
                   (end - start) + "ms"); 
 	      start = System.currentTimeMillis();
-		  ParserTest3();
+		  ParserTest2();
 		  end = System.currentTimeMillis(); 
 		  System.out.println("IESelfJoin takes " + 
                   (end - start) + "ms");
 		  
 
-		  compare_2_arrays(L_nlj,L_selfjoin_two);
+		  //compare_2_arrays(L_nlj,L_selfjoin_one);
 		  }
 }

@@ -360,7 +360,6 @@ public class SelfInequalityJoinTwoPredicate  extends Iterator
     	  outer_index++;
     	  } 
       
-      inner.closescan();
       return null;
       }
  
@@ -377,6 +376,7 @@ public class SelfInequalityJoinTwoPredicate  extends Iterator
 	
 	try {
 	  outer.close();
+	  inner.closescan();
 	}catch (Exception e) {
 	  throw new JoinsException(e, "NestedLoopsJoin.java: error in closing iterator.");
 	}

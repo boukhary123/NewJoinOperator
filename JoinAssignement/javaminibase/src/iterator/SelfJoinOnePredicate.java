@@ -6,7 +6,6 @@ import bufmgr.*;
 import diskmgr.*;
 import index.*;
 import java.lang.*;
-import java.util.BitSet;
 import java.io.*;
 
 /** 
@@ -25,16 +24,18 @@ public class SelfJoinOnePredicate  extends Iterator
   private   int        n_buf_pgs;        // # of buffer pages available.
   private   boolean        done,         // Is the join complete
     get_from_outer;                 // if TRUE, a tuple is got from outer
-  private   Tuple     outer_tuple, inner_tuple;
+  private   Tuple     inner_tuple,outer_tuple;
   private   Tuple     Jtuple;           // Joined tuple
   private   FldSpec   perm_mat[];
   private   int        nOutFlds;
-  private Sort sort_fileds_outer;
+  //private Sort sort_fileds_outer;
   private int eqoff;
   private int outer_index;
   private int inner_index;
-  private ArrayList<Tuple> L1;
+  private ArrayList<RowWithTuple> L1;
   private int number_of_rows;
+  private   Heapfile  hf;
+  private   Scan      inner;
   
   
   /**constructor
@@ -113,17 +114,13 @@ public class SelfJoinOnePredicate  extends Iterator
       outer_index = 0;
       inner_index = 0;
       
-           
-      // variable to specify sort oder of the file 
-      TupleOrder sortoder = null;
-      
+                
       // check how we should sort the L1 array (the heap file)
       if (outFilter[0].op.attrOperator  == AttrOperator.aopGT ||
     		  outFilter[0].op.attrOperator  == AttrOperator.aopGE) {
     	  
     	  
     	  // sort array in ascending order
-    	  //sortoder = new TupleOrder(TupleOrder.Ascending);
     	  Ascending_op1 = true;
       }
       
@@ -131,34 +128,53 @@ public class SelfJoinOnePredicate  extends Iterator
     		  outFilter[0].op.attrOperator  == AttrOperator.aopLE){
     	  
     	  // sort array in descending order
-    	  //sortoder = new TupleOrder(TupleOrder.Descending);
     	  Ascending_op1 = false;
     	  
       }
       
 	  
 	  try {
-		  sort_fileds_outer = new Sort (_in1,(short)len_in1, t1_str_sizes,
-			  (iterator.Iterator) am1, outFilter[0].operand1.symbol.offset,
-			  sortoder, 30, 10);
+
 		  
-		  outer = sort_fileds_outer;
+		  int i=0;
+		  L1 = new ArrayList<RowWithTuple>();
+
+		  hf = new Heapfile(relationName);
+		  inner = hf.openScan();
+	      RID rid = new RID();
+	      int field_to_sort;
 	      FldSpec   perm[];
 	      perm = new FldSpec[1];
 	      perm[0]=perm_mat[0];
-		  
-		  // initialize L1 array
-		 int i=0;
-		 L1 = new ArrayList<Tuple>();
-		 while((outer_tuple=outer.get_next()) != null) {
-			 outer_tuple.setHdr((short)in1_len, _in1,t1_str_sizes);
-			 Projection.Project(outer_tuple, _in1, Jtuple, perm,1);
-			 L1.add(new Tuple(outer_tuple));
-			  i++;
-		  }
-		 
+ 
+	      // initialize L2 array
+	      while ((inner_tuple = inner.getNext(rid)) != null) {
+			  inner_tuple.setHdr((short)in1_len, _in1,t1_str_sizes);
+			  
+			  // add an element to L1 array
+			  field_to_sort=inner_tuple.getIntFld(outFilter[0].operand1.symbol.offset);
+			  Projection.Project(inner_tuple, _in1, Jtuple, perm,1);
+	    	  L1.add(new RowWithTuple(rid, field_to_sort,Jtuple));
+			  	    	  
+	    	  // keep track of the number of rows
+	    	  i+=1;
+	    	  
+	      }
+	      
+			 
 		 // get the number of rows
-		 number_of_rows = i;		 
+		 number_of_rows = i;	
+		 
+	      if (Ascending_op1) {
+	    	  Collections.sort(L1, new SortAsceding()); 
+	      }
+	      
+	      else {
+	    	  Collections.sort(L1, new SortDesceding());
+	      }
+		 
+		 
+		 
 	  }
 	  
 	  catch (Exception e) {
@@ -178,6 +194,7 @@ public class SelfJoinOnePredicate  extends Iterator
 		  eqoff=0;
 	  }     
     }
+  
   
   
   public static boolean predicate_evaluate(int field1,int field2,int operator_type) {
@@ -231,6 +248,8 @@ public class SelfJoinOnePredicate  extends Iterator
 	   Exception
     {
     
+	  int outer_tuple_fld1,inner_tuple_fld1;
+	  
       while(outer_index<number_of_rows) {
     	  
     	  if(get_from_outer) {
@@ -243,26 +262,30 @@ public class SelfJoinOnePredicate  extends Iterator
     	  while(inner_index<outer_index+eqoff) {
     		  
     		  // get outer and inner tuple
-    		  outer_tuple=L1.get(outer_index);
-    		  inner_tuple=L1.get(inner_index);
-    		      		  
+    		  outer_tuple=L1.get(outer_index).field_to_select;
+    		  inner_tuple=L1.get(inner_index).field_to_select;
+    		  outer_tuple_fld1 = L1.get(outer_index).field_to_sort;
+    		  inner_tuple_fld1= L1.get(inner_index).field_to_sort;
+
     		  // this function is used here to deal with duplicates it checks if the 
     		  // 2 tuples satisfy the join predicate
-		      if (PredEval.Eval(OutputFilter, outer_tuple, inner_tuple, _in1, _in2) == true)
-			{
-    		  // join inner and outer tuples
-    		  Projection.Join(outer_tuple, _in1, inner_tuple, _in2, 
-    				  Jtuple, perm_mat, nOutFlds);
+
+    		  if(SelfJoinOnePredicate.predicate_evaluate(
+					  outer_tuple_fld1, inner_tuple_fld1, OutputFilter[0].op.attrOperator)) {
+	    		  
+    			  // join inner and outer tuples
+	    		  Projection.Join(outer_tuple, _in1, inner_tuple, _in2, 
+	    				  Jtuple, perm_mat, nOutFlds);
+	    		  inner_index++;
+	    		  return Jtuple;
+	    		  } 
     		  inner_index++;
-    		  return Jtuple;
-			} 
-		      inner_index++;
-		      }
+    		  }
     	  
     	  get_from_outer = true;
     	  outer_index++;
     	  } 
-      
+     
       return null;
       
       }
@@ -279,7 +302,7 @@ public class SelfJoinOnePredicate  extends Iterator
       if (!closeFlag) {
 	
 	try {
-	  outer.close();
+		inner.closescan();
 	}catch (Exception e) {
 	  throw new JoinsException(e, "NestedLoopsJoin.java: error in closing iterator.");
 	}
