@@ -9,8 +9,8 @@ public class RowWithTuple extends Row {
 
 	public Tuple field_to_select;
 
-	public RowWithTuple(RID rid, int field_to_sort, Tuple field_to_select) {
-		super(rid, field_to_sort);
+	public RowWithTuple(int heapfile_index,RID rid, int field_to_sort, Tuple field_to_select) {
+		super(heapfile_index,rid, field_to_sort);
 		this.field_to_select = new Tuple(field_to_select);
 	}
 }

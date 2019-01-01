@@ -121,6 +121,8 @@ public class SelfJoinOnePredicate extends Iterator {
 
 		try {
 
+			int heapfile_index = 0;
+
 			int i = 0;
 
 			// array that will store tuples and field to be sorted
@@ -159,7 +161,7 @@ public class SelfJoinOnePredicate extends Iterator {
 							Projection.Project(inner_tuple, _in1, Jtuple, perm, 1);
 
 							// add element to L1 array
-							L1.add(new RowWithTuple(rid, field_to_sort, Jtuple));
+							L1.add(new RowWithTuple(heapfile_index, rid, field_to_sort, Jtuple));
 
 							// keep track of the number of rows
 							i += 1;
@@ -193,7 +195,7 @@ public class SelfJoinOnePredicate extends Iterator {
 							Projection.Project(inner_tuple, _in1, Jtuple, perm, 1);
 
 							// add element to L1 array
-							L1.add(new RowWithTuple(rid, field_to_sort, Jtuple));
+							L1.add(new RowWithTuple(heapfile_index, rid, field_to_sort, Jtuple));
 
 							// keep track of the number of rows
 							i += 1;
@@ -210,6 +212,7 @@ public class SelfJoinOnePredicate extends Iterator {
 					F.deleteFile();
 					break;
 				}
+				heapfile_index++;
 			}
 
 			// get the number of rows
@@ -241,33 +244,6 @@ public class SelfJoinOnePredicate extends Iterator {
 
 			eqoff = 0;
 		}
-	}
-
-	/**
-	 * This function is used to compares 2 fields according to a specific operator
-	 * 
-	 * @param field1        The first integer field to compare
-	 * @param field2        The second integer field to compare
-	 * @param operator_type integer specifying the type of operator
-	 * @return true if (field op1 field2)
-	 */
-	public static boolean predicate_evaluate(int field1, int field2, int operator_type) {
-
-		// return the truth value of field1 op field2
-		switch (operator_type) {
-		case 1:
-			return field1 < field2;
-		case 2:
-			return field1 > field2;
-
-		case 4:
-			return field1 <= field2;
-
-		case 5:
-			return field1 >= field2;
-		}
-		return false;
-
 	}
 
 	/**
@@ -315,7 +291,7 @@ public class SelfJoinOnePredicate extends Iterator {
 				// this function is used here to deal with duplicates it checks if the
 				// 2 tuples satisfy the join predicate
 
-				if (SelfJoinOnePredicate.predicate_evaluate(outer_tuple_fld1, inner_tuple_fld1,
+				if (Utils.predicate_evaluate(outer_tuple_fld1, inner_tuple_fld1,
 						OutputFilter[0].op.attrOperator)) {
 
 					// join inner and outer tuples

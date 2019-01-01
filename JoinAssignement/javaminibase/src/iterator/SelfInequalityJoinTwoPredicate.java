@@ -16,39 +16,6 @@ import java.io.*;
  * predicates.
  */
 
-// this class is used to represent a tuple to be sorted in an array
-class Row {
-	public RID rid; // the record id number
-	public int field_to_sort; // the field to be sorted
-
-	// Constructor
-	public Row(RID rid, int field_to_sort) {
-		this.rid = new RID();
-		this.rid.copyRid(rid);
-		this.field_to_sort = field_to_sort;
-	}
-
-	public boolean equals(Row right) {
-		return this.rid.equals(right.rid);
-	}
-}
-
-class SortAsceding implements Comparator<Row> {
-	// Used for sorting in ascending order of
-	// field_to_sort
-	public int compare(Row a, Row b) {
-		return a.field_to_sort - b.field_to_sort;
-	}
-}
-
-class SortDesceding implements Comparator<Row> {
-	// Used for sorting in descending order of
-	// field_to_sort
-	public int compare(Row a, Row b) {
-		return -(a.field_to_sort - b.field_to_sort);
-	}
-}
-
 public class SelfInequalityJoinTwoPredicate extends Iterator {
 	private AttrType _in1[], _in2[];
 	private int in1_len, in2_len;
@@ -97,7 +64,7 @@ public class SelfInequalityJoinTwoPredicate extends Iterator {
 	 */
 	public SelfInequalityJoinTwoPredicate(AttrType in1[], int len_in1, short t1_str_sizes[], AttrType in2[],
 			int len_in2, short t2_str_sizes[], int amt_of_mem, Iterator am1, String relationName, CondExpr outFilter[],
-			CondExpr rightFilter[], FldSpec proj_list[], int n_out_flds, String path_file)
+			CondExpr rightFilter[], FldSpec proj_list[], int n_out_flds, String file_path)
 			throws IOException, NestedLoopException {
 		_in1 = new AttrType[in1.length];
 		_in2 = new AttrType[in2.length];
@@ -135,6 +102,7 @@ public class SelfInequalityJoinTwoPredicate extends Iterator {
 		// initialize outer and inner indexes
 		outer_index = 0;
 		inner_index = 0;
+		
 		// set up the reader that will read the records from the text file
 		this.firstHeapFileCall = true;
 		this.reader = new BufferedReader(new FileReader("../../" + file_path + ".txt"));
@@ -165,6 +133,11 @@ public class SelfInequalityJoinTwoPredicate extends Iterator {
 
 		try {
 
+			// this variable is used to make sure record id's are unique for tuples 
+			// from different heapfile
+			int heapfile_index = 0;
+
+			// index to keep track of the total number of tuples
 			int i = 0;
 			// we only return elements from L1 array so we need to store only in L1
 			// the tuples to be returned which is implemented in the RowWithTuple class
@@ -173,12 +146,6 @@ public class SelfInequalityJoinTwoPredicate extends Iterator {
 
 			// we don't need to store tuples in this array
 			L2 = new ArrayList<Row>();
-
-//		  // heap file containing the tuples to be returned
-//		  hf = new Heapfile(relationName);
-//		  
-//		  // scan the elements of the heap file
-//		  inner = hf.openScan();
 
 			// this variable is used to keep track of the record id of the current tuple
 			RID rid = new RID();
@@ -201,7 +168,7 @@ public class SelfInequalityJoinTwoPredicate extends Iterator {
 					inner = hf.openScan();
 
 					try {
-						// read tuples from the heap file and fill the L1 array
+						// read tuples from the heap file and fill the L1 array and L2 array
 						while ((inner_tuple = inner.getNext(rid)) != null) {
 							// set the header of the read tuple
 							inner_tuple.setHdr((short) in1_len, _in1, t1_str_sizes);
@@ -213,7 +180,13 @@ public class SelfInequalityJoinTwoPredicate extends Iterator {
 							Projection.Project(inner_tuple, _in1, Jtuple, perm, 1);
 
 							// add element to L1 array
-							L1.add(new RowWithTuple(rid, field_to_sort, Jtuple));
+							L1.add(new RowWithTuple(heapfile_index, rid, field_to_sort, Jtuple));
+
+							// set the field to be sorted
+							field_to_sort = inner_tuple.getIntFld(outFilter[1].operand1.symbol.offset);
+
+							// add element to L2 array
+							L2.add(new Row(heapfile_index, rid, field_to_sort));
 
 							// keep track of the number of rows
 							i += 1;
@@ -248,12 +221,11 @@ public class SelfInequalityJoinTwoPredicate extends Iterator {
 							Projection.Project(inner_tuple, _in1, Jtuple, perm, 1);
 
 							// add element to L1 array
-							L1.add(new RowWithTuple(rid, field_to_sort, Jtuple));
-
+							L1.add(new RowWithTuple(heapfile_index, rid, field_to_sort, Jtuple));
 							field_to_sort = inner_tuple.getIntFld(outFilter[1].operand1.symbol.offset);
-							Projection.Project(inner_tuple, _in1, Jtuple, perm, 1);
+							
 							// add element to L2 array
-							L2.add(new Row(rid, field_to_sort));
+							L2.add(new Row(heapfile_index, rid, field_to_sort));
 
 							// keep track of the number of rows
 							i += 1;
@@ -270,32 +242,8 @@ public class SelfInequalityJoinTwoPredicate extends Iterator {
 					F.deleteFile();
 					break;
 				}
+				heapfile_index++;
 			}
-
-//			// read tuples from the heap file and fill the L1 array and L2 array
-//			while ((inner_tuple = inner.getNext(rid)) != null) {
-//
-//				// set the header of the read tuple
-//				inner_tuple.setHdr((short) in1_len, _in1, t1_str_sizes);
-//
-//				// set the field to be sorted
-//				field_to_sort = inner_tuple.getIntFld(outFilter[0].operand1.symbol.offset);
-//
-//				// project the tuple on the field to be selected finally
-//				Projection.Project(inner_tuple, _in1, Jtuple, perm, 1);
-//
-//				// add element to L1 array
-//				L1.add(new RowWithTuple(rid, field_to_sort, Jtuple));
-//
-//				field_to_sort = inner_tuple.getIntFld(outFilter[1].operand1.symbol.offset);
-//				Projection.Project(inner_tuple, _in1, Jtuple, perm, 1);
-//				// add element to L2 array
-//				L2.add(new Row(rid, field_to_sort));
-//
-//				// keep track of the number of rows
-//				i += 1;
-//
-//			}
 
 			number_of_rows = i;
 
@@ -415,9 +363,9 @@ public class SelfInequalityJoinTwoPredicate extends Iterator {
 
 					// this function is used here to deal with duplicates it checks if the
 					// 2 tuples satisfy the join predicate
-					if (SelfJoinOnePredicate.predicate_evaluate(outer_tuple_fld1, inner_tuple_fld1,
+					if (Utils.predicate_evaluate(outer_tuple_fld1, inner_tuple_fld1,
 							OutputFilter[0].op.attrOperator)
-							&& SelfJoinOnePredicate.predicate_evaluate(outer_tuple_fld2, inner_tuple_fld2,
+							&& Utils.predicate_evaluate(outer_tuple_fld2, inner_tuple_fld2,
 									OutputFilter[1].op.attrOperator)) {
 
 						Projection.Join(outer_tuple, _in1, inner_tuple, _in2, Jtuple, perm_mat, nOutFlds);
