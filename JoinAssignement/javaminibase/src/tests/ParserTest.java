@@ -336,19 +336,12 @@ public class ParserTest implements GlobalConst {
 
 		int i = 0;
 		boolean results_same = true;
-		// if (L1.size()==L2.size()) {
-		if (true) {
+		 if (L1.size()==L2.size()) {
 			System.out.println("Both arrays are of same size");
 
 			for (i = 0; i < L2.size(); i++) {
 				if (L2.get(i).fld1 == L2.get(i).fld1 && L1.get(i).fld2 == L2.get(i).fld2) {
 					results_same = true;
-				} else {
-					System.out.println("results are different at index " + i);
-					System.out.println(L2.get(i).fld1 + " " + L2.get(i).fld2);
-					System.out.println(L1.get(i).fld1 + " " + L1.get(i).fld2);
-					break;
-
 				}
 			}
 		} else {
@@ -667,14 +660,14 @@ public class ParserTest implements GlobalConst {
 
 	public static void main(String argv[]) {
 		long start = System.currentTimeMillis();
-		ParserTest test = new ParserTest("../../query_2c_2.txt");
+		ParserTest test = new ParserTest("../../query_2c.txt");
 		long end = System.currentTimeMillis();
 
-		System.out.println("NLJ takes " + (end - start) + "ms");
-		start = System.currentTimeMillis();
-		ParserTest_ie_join_optimized();
-		end = System.currentTimeMillis();
-		System.out.println("IESelfJoin takes " + (end - start) + "ms");
+//		System.out.println("NLJ takes " + (end - start) + "ms");
+//		start = System.currentTimeMillis();
+//		//ParserTest_self_join_two();
+//		end = System.currentTimeMillis();
+//		System.out.println("IESelfJoin takes " + (end - start) + "ms");
 
 		// compare_2_arrays(L_nlj, L_ieqjoin);
 	}

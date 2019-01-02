@@ -48,11 +48,19 @@ indextest: IndexTest
 
 # test join
 
-JoinTest:JoinTest.java
+JoinTest: JoinTest.java
 	$(JAVAC) TestDriver.java JoinOperatorTest.java
 
 jointest: JoinTest
 	$(JAVA) tests.JoinOperatorTest
+
+# Nested Loop Join Task1a
+
+Task1a_Test: Task1a.java 
+	$(JAVAC) Task1a.java
+
+Task1a: Task1a_Test
+	$(JAVA) tests.Task1a
 
 # test sort
 
