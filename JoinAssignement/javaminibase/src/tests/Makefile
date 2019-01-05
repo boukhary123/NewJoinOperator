@@ -48,7 +48,7 @@ indextest: IndexTest
 
 # test join
 
-JoinTest:JoinTest.java
+JoinTest: JoinTest.java
 	$(JAVAC) TestDriver.java JoinOperatorTest.java
 
 jointest: JoinTest
@@ -70,6 +70,102 @@ SMJoin:SM_JoinTest.java
 sortmerge: SMJoin
 	$(JAVA) tests.SM_JoinTest
 
+
+# test parser
+
+parser:ParserTest.java
+	$(JAVAC) ParserTest.java
+
+parsertest: parser
+	$(JAVA) tests.ParserTest
+
+# Nested Loop Join Task1a
+
+Task1a_Test: Task1a.java 
+	$(JAVAC) Task1a.java
+
+Task1a: Task1a_Test
+	$(JAVA) tests.Task1a
+
+# Nested Loop Join Task1b
+
+Task1b_Test: Task1b.java 
+	$(JAVAC) Task1b.java
+
+Task1b: Task1b_Test
+	$(JAVA) tests.Task1b
+
+# Self Join One Predicate Task2a
+
+Task2a_Test: Task2a.java 
+	$(JAVAC) Task2a.java
+
+Task2a: Task2a_Test
+	$(JAVA) tests.Task2a
+
+# Self Inequality Join Two Predicates Task2b
+
+Task2b_Test: Task2b.java 
+	$(JAVAC) Task2b.java
+
+Task2b: Task2b_Test
+	$(JAVA) tests.Task2b
+
+# Inequality Join Two Predicates Task2c
+
+Task2c_Test: Task2c.java 
+	$(JAVAC) Task2c.java
+
+Task2c: Task2c_Test
+	$(JAVA) tests.Task2c
+
+# Inequality Join Two Predicates Task2c_1
+
+Task2c_1_Test: Task2c_1.java 
+	$(JAVAC) Task2c_1.java
+
+Task2c_1: Task2c_1_Test
+	$(JAVA) tests.Task2c_1
+
+# Inequality Join Two Predicates Task2c_2
+
+Task2c_2_Test: Task2c_2.java 
+	$(JAVAC) Task2c_2.java
+
+Task2c_2: Task2c_2_Test
+	$(JAVA) tests.Task2c_2
+
+# Self Inequality Join TwoPredicate Optimized Task2d_2b
+
+Task2d_2b_Test: Task2d_2b.java 
+	$(JAVAC) Task2d_2b.java
+
+Task2d_2b: Task2d_2b_Test
+	$(JAVA) tests.Task2d_2b
+
+# Inequality Join Two Predicates Optimized Task2d_2c
+
+Task2d_2c_Test: Task2d_2c.java 
+	$(JAVAC) Task2d_2c.java
+
+Task2d_2c: Task2d_2c_Test
+	$(JAVA) tests.Task2d_2c
+
+# Inequality Join Two Predicates Optimized Task2d_2c_1
+
+Task2d_2c_1_Test: Task2d_2c_1.java 
+	$(JAVAC) Task2d_2c_1.java
+
+Task2d_2c_1: Task2d_2c_1_Test
+	$(JAVA) tests.Task2d_2c_1
+
+# Inequality Join Two Predicates Optimized Task2d_2c_2
+
+Task2d_2c_2_Test: Task2d_2c_2.java 
+	$(JAVAC) Task2d_2c_2.java
+
+Task2d_2c_2: Task2d_2c_2_Test
+	$(JAVA) tests.Task2d_2c_2
 
 
 

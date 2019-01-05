@@ -41,31 +41,20 @@ public class QueryParser {
 	// number of field for first relation
 	int R2_no_flds;
 	
-	// true if the query has a single predicate (condition)
-	boolean singlePred;
-	
 	// condition expression of the first predicate (elements separated by AND)
 	CondExpr[] Predicate;
 	
-	// heap file for first relation
-	Heapfile R1_hf;
-	
-	// heap file for second relation
-	Heapfile R2_hf;
-	
-
 	
 	public QueryParser(File f)
 	{
 		// initialize as single predicate query
-		singlePred = true;
 		
 		try {
 		    	// initial the query file reader
 				BufferedReader query_reader = new BufferedReader(new FileReader(f)); 
 		  		
 		  		String line;
-		  		// read the first line of the query
+		  		// read the first line of the query to compute the projections in the SELECT statement
 		  		if((line = query_reader.readLine()) != null)
 		  		{
 		  			// put the fields in the projection in a list
@@ -77,7 +66,7 @@ public class QueryParser {
 		  			// initialize an array of types of the projected fields in the query
 		  			projectionTypes = new AttrType[2];
 		  			
-		  			// get first field
+		  			// get first field in the SELECT statement
 	  				String field = Select.get(0);
 	  				int index_init = field.indexOf('_');
 	  				
@@ -110,12 +99,13 @@ public class QueryParser {
 		  				String relation = relations.get(0);
 
 		  				// get the relation file containing the attribute types and records
-		  				File rel_file = new File("../../"+relation+".txt");
+		  				File rel_file = new File("../../../"+relation+".txt");
 		  				
 		  				try {
 		  					// new relation file reader
 		  					BufferedReader rel_reader = new BufferedReader(new FileReader(rel_file));
 		  					String header;
+		  					
 		  					// extract the header (contains the attribute types)
 		  					if((header = rel_reader.readLine()) != null) {
 		  						// extract the attribute types
@@ -158,74 +148,7 @@ public class QueryParser {
 					  					R1types[i] = new AttrType(4);
 					  					R1_projection[i] = new FldSpec(new RelSpec(RelSpec.outer),i+1);
 					  				}
-					  			}
-			  					
-					  			if(!relation.equals("Q")) {
-					  		    Tuple t = new Tuple();
-					  		    try {
-					  		      t.setHdr((short) R1_no_flds,R1types, null);
-					  		    }
-					  		    catch (Exception e) {
-					  		      System.err.println("*** error in Tuple.setHdr() ***");
-					  		      e.printStackTrace();
-					  		    }
-					  		    
-					  		    int size = t.size();
-					  		    
-					  		    // inserting the tuple into the heap file "R1.in"
-					  		    RID             rid;
-					  		    R1_hf = null;
-					  		    try {
-					  		    	R1_hf = new Heapfile("R1.in");
-					  		    }
-					  		    catch (Exception e) {
-					  		      System.err.println("*** error in Heapfile constructor ***");
-					  		      e.printStackTrace();
-					  		    }
-					  		    
-					  		    t = new Tuple(size);
-					  		    try {
-					  		      t.setHdr((short) R1_no_flds, R1types, null);
-					  		    }
-					  		    catch (Exception e) {
-					  		      System.err.println("*** error in Tuple.setHdr() ***");
-					  		      e.printStackTrace();
-					  		    }
 					  			
-
-					  		      try {
-						  		    	rel_reader = new BufferedReader(new FileReader(rel_file)); 
-
-					  			  		String rec;
-					  			  		rec = rel_reader.readLine();
-					  			  		while((rec = rel_reader.readLine()) != null) {
-					  			  			
-				  			  			
-				  			  			// read each field for each tuple
-				  			  			List<String> fields = Arrays.asList(rec.split(","));	
-				  			  			
-				  			  			for(int k=0; k<R1_no_flds;k++) {
-				  			  			
-				  			  			t.setIntFld(k+1, Integer.parseInt(fields.get(k)));
-				  			  			
-				  			  			}
-					  				  		
-					  				        try {
-					  				        	// insert the tuple into the heap file
-					  				        	rid = R1_hf.insertRecord(t.returnTupleByteArray());
-					  				              }
-					  				              catch (Exception e) {
-					  				        	System.err.println("*** error in Heapfile.insertRecord() ***");
-					  				        	
-					  				        	e.printStackTrace();
-					  				              }  
-					  			  		}
-					  		  		
-					  		      }
-					  		      catch (Exception e) {
-					  			System.err.println("*** Heapfile error in Tuple.setStrFld() ***");
-					  			e.printStackTrace();
-					  		      }
 					  			}
 	
 		  					}
@@ -241,7 +164,7 @@ public class QueryParser {
 		  					relation = relations.get(1);
 			  				
 		  					// read the relation file
-			  				rel_file = new File("../../"+relation+".txt");
+			  				rel_file = new File("../../../"+relation+".txt");
 			  				
 			  				try {
 			  					// initialize reader
@@ -304,83 +227,6 @@ public class QueryParser {
 		
 			  					}
 			  					
-			  					if(!relation.equals("Q"))
-			  					{
-			  					// create a tuple for heap file
-			  					Tuple t = new Tuple();
-					  		    try {
-					  		      t.setHdr((short) R2_no_flds,R2types, null);
-					  		    }
-					  		    catch (Exception e) {
-					  		      System.err.println("*** error in Tuple.setHdr() ***");
-					  		      e.printStackTrace();
-					  		    }
-					  		    
-					  		    int size = t.size();
-					  		    
-					  		    // inserting the tuple into file "sailors"
-					  		    RID             rid;
-					  		    R2_hf = null;
-					  		    try {
-					  		    	// create heap file for R2
-					  		    	R2_hf = new Heapfile("R2.in");
-					  		    }
-					  		    catch (Exception e) {
-					  		      System.err.println("*** error in Heapfile constructor ***");
-					  		      e.printStackTrace();
-					  		    }
-					  		    
-					  		    t = new Tuple(size);
-					  		    try {
-					  		      t.setHdr((short) R2_no_flds, R2types, null);
-					  		    }
-					  		    catch (Exception e) {
-					  		      System.err.println("*** error in Tuple.setHdr() ***");
-					  		      e.printStackTrace();
-					  		    }
-					  			
-
-					  		      try {
-					  		    	  
-//					  			t.setIntFld(1, ((Sailor)sailors.elementAt(i)).sid);
-//					  			t.setStrFld(2, ((Sailor)sailors.elementAt(i)).sname);
-//					  			t.setIntFld(3, ((Sailor)sailors.elementAt(i)).rating);
-//					  			t.setFloFld(4, (float)((Sailor)sailors.elementAt(i)).age);
-					  					
-					  		    	rel_reader = new BufferedReader(new FileReader(rel_file)); 
-					  			  		
-					  			  		String rec;
-					  			  		rec = rel_reader.readLine();
-					  			  		while((rec = rel_reader.readLine()) != null) {
-					  			  			
-				  			  			// read each field for each tuple
-				  			  			List<String> fields = Arrays.asList(rec.split(","));	
-				  			  			
-				  			  			for(int k=0; k<R2_no_flds;k++) {
-				  			  			
-				  			  			t.setIntFld(k+1, Integer.parseInt(fields.get(k)));
-				  			  			
-				  			  			}
-					  				  		
-					  				        try {
-					  				        	// insert the type into the heap file
-					  				        	rid = R2_hf.insertRecord(t.returnTupleByteArray());
-					  				        	
-					  				              }
-					  				              catch (Exception e) {
-					  				        	System.err.println("*** error in Heapfile.insertRecord() ***");
-					  				        	
-					  				        	e.printStackTrace();
-					  				              }  
-					  			  		}
-					  		  		
-					  		      }
-					  		      catch (Exception e) {
-					  			System.err.println("*** Heapfile error in Tuple.setStrFld() ***");
-					  			e.printStackTrace();
-					  		      }
-			  					}
-			  					
 			  				}catch(Exception e) {
 			  					
 			  				}	
@@ -426,8 +272,6 @@ public class QueryParser {
 			  				// in the case of a second predicate
 			  				if((line = query_reader.readLine()) != null)
 			  				{
-			  					// set singlePred to false
-			  					singlePred = false;
 			  					line = query_reader.readLine();
 			  					predicate = Arrays.asList(line.split(" "));
 			  					

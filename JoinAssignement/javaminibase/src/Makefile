@@ -10,3 +10,40 @@ JAVA  = $(JDKPATH)/bin/java  -classpath $(CLASSPATH)
 	
 test: 
 	cd tests; make jointest
+
+parser:
+	cd tests; make parsertest
+
+task1a:
+	cd tests; make Task1a
+
+task1b:
+	cd tests; make Task1b
+
+task2a:
+	cd tests; make Task2a
+
+task2b:
+	cd tests; make Task2b
+
+task2c:
+	cd tests; make Task2c
+
+task2c_1:
+	cd tests; make Task2c_1
+
+task2c_2:
+	cd tests; make Task2c_2
+
+task2d_2b:
+	cd tests; make Task2d_2b
+
+task2d_2c:
+	cd tests; make Task2d_2c
+
+task2d_2c_1:
+	cd tests; make Task2d_2c_1
+
+task2d_2c_2:
+	cd tests; make Task2d_2c_2
+
