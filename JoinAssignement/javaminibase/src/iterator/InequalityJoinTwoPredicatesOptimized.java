@@ -168,7 +168,7 @@ public class InequalityJoinTwoPredicatesOptimized extends Iterator {
 			// set up the reader that will read the records from the text file of the left
 			// input
 			this.firstHeapFileCall = true;
-			this.reader = new BufferedReader(new FileReader("../../" + file_path1 + ".txt"));
+			this.reader = new BufferedReader(new FileReader("../../../" + file_path1 + ".txt"));
 
 			while (true) {
 				if (!this.getNextHeapFile(len_in1, _in1, relationName1)) {
@@ -263,7 +263,7 @@ public class InequalityJoinTwoPredicatesOptimized extends Iterator {
 			// set up the reader that will read the records from the text file of the left
 			// input
 			this.firstHeapFileCall = true;
-			this.reader = new BufferedReader(new FileReader("../../" + file_path2 + ".txt"));
+			this.reader = new BufferedReader(new FileReader("../../../" + file_path2 + ".txt"));
 			heapfile_index = 0;
 
 			while (true) {

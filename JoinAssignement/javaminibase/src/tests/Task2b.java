@@ -16,8 +16,8 @@ public class Task2b {
 
 	public static void main(String argv[]) {
 		long start = System.currentTimeMillis();
-		ParserTestIEJoin<SelfInequalityJoinTwoPredicate> test = new ParserTestIEJoin<SelfInequalityJoinTwoPredicate>("../../query_2b.txt",
-				"Output/Joined_Result_Query_2b.txt","SelfInequalityJoinTwoPredicate");
+		ParserTestIEJoin<SelfInequalityJoinTwoPredicate> test = new ParserTestIEJoin<SelfInequalityJoinTwoPredicate>("../../../query_2b.txt",
+				"../Output/Joined_Result_Query_2b.txt","SelfInequalityJoinTwoPredicate");
 		long end = System.currentTimeMillis();
 		System.out.println("SelfJoin two predicates Task2b takes " + (end - start) + "ms");
 

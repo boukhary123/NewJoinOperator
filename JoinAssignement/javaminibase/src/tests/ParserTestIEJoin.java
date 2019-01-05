@@ -53,7 +53,7 @@ public class ParserTestIEJoin<T extends Iterator> implements GlobalConst {
 
 		String relation = q.relations.get(0);
 
-		File rel_file = new File("../../" + relation + ".txt");
+		File rel_file = new File("../../../" + relation + ".txt");
 		T iejoin = null;
 		switch (type) {
 
@@ -183,7 +183,7 @@ public class ParserTestIEJoin<T extends Iterator> implements GlobalConst {
 
 		String relation = q.relations.get(0);
 
-		File rel_file = new File("../../" + relation + ".txt");
+		File rel_file = new File("../../../" + relation + ".txt");
 		T iejoin = null;
 		switch (type) {
 

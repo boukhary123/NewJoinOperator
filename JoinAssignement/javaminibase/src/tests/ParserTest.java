@@ -659,6 +659,9 @@ public class ParserTest implements GlobalConst {
 	}
 
 	public static void main(String argv[]) {
+		System.out.println("Start\n\n\n");
+		System.out.println(System.getProperty("user.dir"));
+		
 		long start = System.currentTimeMillis();
 		ParserTest test = new ParserTest("../../query_2c.txt");
 		long end = System.currentTimeMillis();

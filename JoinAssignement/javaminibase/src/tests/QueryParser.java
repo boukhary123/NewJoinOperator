@@ -99,7 +99,7 @@ public class QueryParser {
 		  				String relation = relations.get(0);
 
 		  				// get the relation file containing the attribute types and records
-		  				File rel_file = new File("../../"+relation+".txt");
+		  				File rel_file = new File("../../../"+relation+".txt");
 		  				
 		  				try {
 		  					// new relation file reader
@@ -164,7 +164,7 @@ public class QueryParser {
 		  					relation = relations.get(1);
 			  				
 		  					// read the relation file
-			  				rel_file = new File("../../"+relation+".txt");
+			  				rel_file = new File("../../../"+relation+".txt");
 			  				
 			  				try {
 			  					// initialize reader

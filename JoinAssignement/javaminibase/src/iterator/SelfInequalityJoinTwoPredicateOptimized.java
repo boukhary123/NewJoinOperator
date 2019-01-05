@@ -106,7 +106,7 @@ public class SelfInequalityJoinTwoPredicateOptimized extends Iterator {
 
 		// set up the reader that will read the records from the text file
 		this.firstHeapFileCall = true;
-		this.reader = new BufferedReader(new FileReader("../../" + file_path + ".txt"));
+		this.reader = new BufferedReader(new FileReader("../../../" + file_path + ".txt"));
 
 		// check how we should sort the L1 array and L2 array
 		if (outFilter[0].op.attrOperator == AttrOperator.aopGT || outFilter[0].op.attrOperator == AttrOperator.aopGE) {

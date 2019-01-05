@@ -66,6 +66,8 @@ public class ParserTestNlj implements GlobalConst {
 
 		// parse the query
 		QueryParser q = new QueryParser(query_file);
+		
+		System.out.println(q.R1_no_flds);
 
 		// variable indicating the end of the outer relation records
 		boolean done_inner = false;
@@ -80,11 +82,11 @@ public class ParserTestNlj implements GlobalConst {
 		Heapfile R2_hf = null;
 
 		// load the outer relation file
-		File rel_file1 = new File("../../" + q.relations.get(0) + ".txt");
+		File rel_file1 = new File("../../../" + q.relations.get(0) + ".txt");
 
 		// load the inner relation file
 		File rel_file2 = new File(
-				"../../" + ((q.relations.size() > 1) ? q.relations.get(1) : q.relations.get(0)) + ".txt");
+				"../../../" + ((q.relations.size() > 1) ? q.relations.get(1) : q.relations.get(0)) + ".txt");
 
 		try {
 
