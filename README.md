@@ -12,47 +12,47 @@ Navigate to the *"JoinAssignement/Code/javaminibase/src/"* directory of the proj
 
 ### Task 1a
 ```sh
-$ make Task1a
+$ make task1a
 ```
 ### Task 1b
 ```sh
-$ make Task1b
+$ make task1b
 ```
 ### Task 2a
 ```sh
-$ make Task2a
+$ make task2a
 ```
 ### Task 2b
 ```sh
-$ make Task2b
+$ make task2b
 ```
 ### Task 2c
 ```sh
-$ make Task2c
+$ make task2c
 ```
 ### Task 2c_1
 ```sh
-$ make Task2c_1
+$ make task2c_1
 ```
 ### Task 2c_2
 ```sh
-$ make Task2c_2
+$ make task2c_2
 ```
 ### Task 2d_2b
 ```sh
-$ make Task2c_2b
+$ make task2d_2b
 ```
 ### Task 2d_2c
 ```sh
-$ make Task2d_2c
+$ make task2d_2c
 ```
 ### Task 2d_2c_1
 ```sh
-$ make Task2d_2c_1
+$ make task2d_2c_1
 ```
 ### Task 2d_2c_2
 ```sh
-$ make Task2d_2c_2
+$ make task2d_2c_2
 ```
 
    [l1]: <http://research.cs.wisc.edu/coral/mini_doc/minibase.html>

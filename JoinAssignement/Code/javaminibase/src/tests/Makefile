@@ -167,13 +167,3 @@ Task2d_2c_2_Test: Task2d_2c_2.java
 Task2d_2c_2: Task2d_2c_2_Test
 	$(JAVA) tests.Task2d_2c_2
 
-# Plot Runtime
-
-Plot_Test: plot.java 
-	$(JAVAC) plot.java
-
-Plot: Plot_Test
-	$(JAVA) tests.plot
-
-
-

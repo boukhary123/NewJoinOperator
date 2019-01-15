@@ -47,9 +47,3 @@ task2d_2c_1:
 task2d_2c_2:
 	cd tests; make Task2d_2c_2
 
-plot:
-	cd tests; make Plot
-
-plot:
-	cd tests; make Plot
-
