@@ -27,7 +27,7 @@ public class plot3 {
     	  
 	      final XYSeries iej_op = new XYSeries( "Inequality Join Optimized" );
     	  
-	      for(int i=1; i<=100; i++) {
+	      for(int i=100; i<=1000; i = i+100) {
 	      
 	    	  System.out.println("Number of chunks: " + i);
 	    	 
@@ -57,7 +57,7 @@ public class plot3 {
 	      
 	      int width = 640;   /* Width of the image */
 	      int height = 480;  /* Height of the image */ 
-	      File XYChart = new File( "../../../../Report/XYLineChart3.jpeg" ); 
+	      File XYChart = new File( "../../../../Report/XYLineChart4.jpeg" ); 
 	      ChartUtilities.saveChartAsJPEG( XYChart, xylineChart, width, height);
    }
 }
