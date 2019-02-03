@@ -292,5 +292,6 @@ public class ParserTestIEJoin<T extends Iterator> implements GlobalConst {
 		}
 
 		System.out.println(String.format("The number of rows is %d", row_count));
+		writer.close();
 	}
 }

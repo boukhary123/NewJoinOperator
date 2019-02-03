@@ -295,6 +295,9 @@ public class ParserTestNlj implements GlobalConst {
 					// close the iterators
 					am.close();
 					nlj.close();
+					
+					// close the print writer
+					writer.close();
 
 					// delete the inner relation heap file to remove the added records
 					R2_hf.deleteFile();

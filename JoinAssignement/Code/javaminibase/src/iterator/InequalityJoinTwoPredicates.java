@@ -37,7 +37,8 @@ public class InequalityJoinTwoPredicates extends Iterator {
 	private int number_of_rows, number_of_rows_prime;
 	private Heapfile hf1, hf2;
 	private Scan outer, inner;
-	private int permutation_array[], permutation_array_prime[], offset1[], offset2[], off1, off2;
+	private int permutation_array[], permutation_array_prime[], permutation_array_prime_1_to_2[], offset1[], offset2[],
+			off1, off2;
 	// private ArrayList<Integer> offset1,offset2;
 
 	/**
@@ -58,8 +59,10 @@ public class InequalityJoinTwoPredicates extends Iterator {
 	 * @param rightFilter   reference to filter applied on right i/p
 	 * @param proj_list     shows what input fields go where in the output tuple
 	 * @param n_out_flds    number of outer relation fields
-	 * @param file_path1    path of the text file containing the records of the left input
-	 * @param file_path2    path of the text file containing the records of the right input
+	 * @param file_path1    path of the text file containing the records of the left
+	 *                      input
+	 * @param file_path2    path of the text file containing the records of the
+	 *                      right input
 	 * @exception IOException         some I/O fault
 	 * @exception NestedLoopException exception from this class
 	 */
@@ -381,6 +384,7 @@ public class InequalityJoinTwoPredicates extends Iterator {
 			// initialize permutation array
 			permutation_array = new int[number_of_rows];
 			permutation_array_prime = new int[number_of_rows_prime];
+			permutation_array_prime_1_to_2 = new int[number_of_rows_prime];
 
 			for (i = 0; i < number_of_rows; i++)
 				for (int j = 0; j < number_of_rows; j++) {
@@ -397,12 +401,20 @@ public class InequalityJoinTwoPredicates extends Iterator {
 						break;
 					}
 				}
+			
+			for (i = 0; i < number_of_rows_prime; i++)
+				for (int j = 0; j < number_of_rows_prime; j++) {
+					if (L1_prime.get(i).equals(L2_prime.get(j))) {
+						permutation_array_prime_1_to_2[i] = j;
+						break;
+					}
+				}
 
 			// compute the offset arrays
 
 			offset1 = new int[number_of_rows];
 			offset2 = new int[number_of_rows];
-			
+
 			// compute the offset arrays using sort-merge join algorithm
 			Utils.SortMerge(L1, L1_prime, offset1, !Descending_op1);
 			Utils.SortMergeWithTuple(L2, L2_prime, offset2, Ascending_op2);
@@ -450,6 +462,7 @@ public class InequalityJoinTwoPredicates extends Iterator {
 	public Tuple get_next() throws IOException, JoinsException, IndexException, InvalidTupleSizeException,
 			InvalidTypeException, PageNotReadException, TupleUtilsException, PredEvalException, SortException,
 			LowMemException, UnknowAttrType, UnknownKeyTypeException, Exception {
+		int outer_tuple_fld1, outer_tuple_fld2, inner_tuple_fld1, inner_tuple_fld2;
 
 		while (i_index < number_of_rows) {
 
@@ -474,11 +487,24 @@ public class InequalityJoinTwoPredicates extends Iterator {
 					outer_tuple = L2.get(i_index).field_to_select;
 					inner_tuple = L1_prime.get(k_index).field_to_select;
 
-					// join both tuples into one tuple and return it
-					Projection.Join(outer_tuple, _in1, inner_tuple, _in2, Jtuple, perm_mat, nOutFlds);
-					k_index++;
-					return Jtuple;
+					// retrieve fields to compare them to avoid duplicates being returned
+					outer_tuple_fld1 = L1.get(permutation_array[i_index]).field_to_sort;
+					outer_tuple_fld2 = L2.get(i_index).field_to_sort;
+					inner_tuple_fld1 = L1_prime.get(k_index).field_to_sort;
+					inner_tuple_fld2 = L2.get(permutation_array_prime_1_to_2[k_index]).field_to_sort;
 
+					// this function is used here to deal with duplicates it checks if the
+					// 2 tuples satisfy the join predicate
+					if (Utils.predicate_evaluate(outer_tuple_fld1, inner_tuple_fld1, OutputFilter[0].op.attrOperator)
+							&& Utils.predicate_evaluate(outer_tuple_fld2, inner_tuple_fld2,
+									OutputFilter[1].op.attrOperator)) {
+
+						// join both tuples into one tuple and return it
+						Projection.Join(outer_tuple, _in1, inner_tuple, _in2, Jtuple, perm_mat, nOutFlds);
+						k_index++;
+						return Jtuple;
+
+					}
 				}
 
 				k_index++;

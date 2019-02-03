@@ -98,11 +98,11 @@ public class ParserTest implements GlobalConst {
 		Heapfile R2_hf = null;
 
 		// load the outer relation file
-		File rel_file1 = new File("../../" + q.relations.get(0) + ".txt");
+		File rel_file1 = new File("../../../../Output/" + q.relations.get(0) + ".txt");
 
 		// load the inner relation file
 		File rel_file2 = new File(
-				"../../" + ((q.relations.size() > 1) ? q.relations.get(1) : q.relations.get(0)) + ".txt");
+				"../../../../Output/" + ((q.relations.size() > 1) ? q.relations.get(1) : q.relations.get(0)) + ".txt");
 
 		try {
 
@@ -336,12 +336,17 @@ public class ParserTest implements GlobalConst {
 
 		int i = 0;
 		boolean results_same = true;
-		 if (L1.size()==L2.size()) {
+//		 if (L1.size()==L2.size()) {
+		if (true) {
 			System.out.println("Both arrays are of same size");
 
 			for (i = 0; i < L2.size(); i++) {
 				if (L2.get(i).fld1 == L2.get(i).fld1 && L1.get(i).fld2 == L2.get(i).fld2) {
 					results_same = true;
+				}
+				else {
+					System.out.println(String.format("%d,%d", L2.get(i).fld1, L2.get(i).fld2));
+					System.out.println(String.format("%d,%d", L1.get(i).fld1, L1.get(i).fld2));
 				}
 			}
 		} else {
@@ -438,12 +443,12 @@ public class ParserTest implements GlobalConst {
 
 		SystemDefs sysdef = new SystemDefs(dbpath, 1000, NUMBUF, "Clock");
 
-		File query_file = new File("../../query_2b.txt");
+		File query_file = new File("../../../../Output/query_2b.txt");
 		QueryParser q = new QueryParser(query_file);
 
 		String relation = q.relations.get(0);
 
-		File rel_file = new File("../../" + relation + ".txt");
+		File rel_file = new File("../../../../Output/" + relation + ".txt");
 
 		SelfInequalityJoinTwoPredicate nlj = null;
 		try {
@@ -498,12 +503,12 @@ public class ParserTest implements GlobalConst {
 
 		SystemDefs sysdef = new SystemDefs(dbpath, 1000, NUMBUF, "Clock");
 
-		File query_file = new File("../../query_2c.txt");
+		File query_file = new File("../../../../Output/query_2c.txt");
 		QueryParser q = new QueryParser(query_file);
 
 		String relation = q.relations.get(0);
 
-		File rel_file = new File("../../" + relation + ".txt");
+		File rel_file = new File("../../../../Output/" + relation + ".txt");
 
 		InequalityJoinTwoPredicates nlj = null;
 		try {
@@ -559,7 +564,7 @@ public class ParserTest implements GlobalConst {
 
 		SystemDefs sysdef = new SystemDefs(dbpath, 1000, NUMBUF, "Clock");
 
-		File query_file = new File("../../query_2b.txt");
+		File query_file = new File("../../../../Output/query_2c.txt");
 		QueryParser q = new QueryParser(query_file);
 
 		String relation = q.relations.get(0);
@@ -619,12 +624,12 @@ public class ParserTest implements GlobalConst {
 
 		SystemDefs sysdef = new SystemDefs(dbpath, 1000, NUMBUF, "Clock");
 
-		File query_file = new File("../../query_2c_2.txt");
+		File query_file = new File("../../../../Output/query_2c.txt");
 		QueryParser q = new QueryParser(query_file);
 
 		String relation = q.relations.get(0);
 
-		File rel_file = new File("../../" + relation + ".txt");
+		File rel_file = new File("../../../../Output/" + relation + ".txt");
 
 		InequalityJoinTwoPredicatesOptimized nlj = null;
 		try {
@@ -663,15 +668,16 @@ public class ParserTest implements GlobalConst {
 		System.out.println(System.getProperty("user.dir"));
 		
 		long start = System.currentTimeMillis();
-		ParserTest test = new ParserTest("../../query_2c.txt");
+//		//ParserTest test = new ParserTest("../../../../Output/query_2c.txt");
+		ParserTest_ie_join_optimized();
 		long end = System.currentTimeMillis();
 
-//		System.out.println("NLJ takes " + (end - start) + "ms");
-//		start = System.currentTimeMillis();
-//		//ParserTest_self_join_two();
-//		end = System.currentTimeMillis();
-//		System.out.println("IESelfJoin takes " + (end - start) + "ms");
+		System.out.println("NLJ takes " + (end - start) + "ms");
+		start = System.currentTimeMillis();
+		ParserTest_ie_join();
+		end = System.currentTimeMillis();
+		System.out.println("IESelfJoin takes " + (end - start) + "ms");
 
-		// compare_2_arrays(L_nlj, L_ieqjoin);
+//		 compare_2_arrays(L_selfjoin_two, L_ieqjoin);
 	}
 }
